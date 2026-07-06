@@ -68,13 +68,10 @@ topic_find_all <- function(topic, packages = pkg_search_attached()) {
 
   found <- list()
   for (package in packages) {
-    entry <- tryCatch(
-      index(package),
-      packageNotFoundError = function(cnd) NULL
-    )
-    if (is.null(entry)) {
+    if (!is_pkg_path(package) && !pkg_is_installed(package)) {
       next
     }
+    entry <- index(package)
     file <- get0(topic, envir = entry$env, inherits = FALSE)
     if (!is.null(file)) {
       found[[length(found) + 1]] <- list(package = entry$name, file = file)
@@ -129,10 +126,7 @@ topic_find_package <- function(topic, package, dependencies) {
 }
 
 topic_has <- function(package, topic) {
-  tryCatch(
-    !is.null(topic_find(topic, package)),
-    error = function(cnd) FALSE
-  )
+  !is.null(topic_find(topic, package))
 }
 
 topic_source <- function(package, topic) {

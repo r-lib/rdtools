@@ -90,7 +90,7 @@ index_resolve <- function(package) {
     path <- getNamespaceInfo(asNamespace(package), "path")
     list(name = package, path = path, backend = "source")
   } else {
-    path <- find.package(package)
+    path <- pkg_find(package)
     if (file.exists(file.path(path, "help", "aliases.rds"))) {
       backend <- "installed"
     } else {
@@ -98,6 +98,34 @@ index_resolve <- function(package) {
     }
     list(name = package, path = path, backend = backend)
   }
+}
+
+# A minimal find.package() for a single package. Unlike find.package(), this
+# avoids reading and validating package metadata from every matching library.
+pkg_find <- function(package) {
+  path <- pkg_find_path(package)
+  if (is.null(path)) {
+    stop(packageNotFoundError(package, .libPaths(), call = sys.call()))
+  }
+  path
+}
+
+# A minimal rlang::is_installed() for a single package without version checks.
+pkg_is_installed <- function(package) {
+  !is.null(pkg_find_path(package))
+}
+
+pkg_find_path <- function(package) {
+  if (package == "base") {
+    return(system.file())
+  }
+  if (isNamespaceLoaded(package)) {
+    return(getNamespaceInfo(asNamespace(package), "path"))
+  }
+
+  paths <- file.path(.libPaths(), package)
+  found <- which(file.exists(file.path(paths, "DESCRIPTION")))[1]
+  if (is.na(found)) NULL else paths[[found]]
 }
 
 index_build <- function(package, key) {

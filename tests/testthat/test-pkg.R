@@ -9,6 +9,16 @@ test_that("pkg_topics() reads installed packages from aliases.rds", {
   )
 })
 
+test_that("local package lookup finds installed packages efficiently", {
+  expect_identical(pkg_find("stats"), find.package("stats"))
+  expect_identical(pkg_is_installed("stats"), TRUE)
+  expect_identical(pkg_is_installed("not-an-installed-package"), FALSE)
+  expect_error(
+    pkg_find("not-an-installed-package"),
+    class = "packageNotFoundError"
+  )
+})
+
 test_that("pkg_topics() indexes source packages from man/", {
   path <- local_test_pkg(
     "foo.Rd" = c("foo", "foo-extra"),
