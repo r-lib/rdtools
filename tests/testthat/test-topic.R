@@ -61,6 +61,12 @@ test_that("topic_find() returns NULL for missing topics", {
   expect_null(topic_find("definitely-not-a-topic", "stats"))
 })
 
+test_that("topic_exists() detects documented topics", {
+  expect_identical(topic_exists("rnorm", "stats"), TRUE)
+  expect_identical(topic_exists("not-a-topic", "stats"), FALSE)
+  expect_identical(topic_exists("foo", "not-an-installed-package"), FALSE)
+})
+
 test_that("topic_find() searches the search path by default", {
   found <- topic_find("mean")
   expect_equal(found$package, "base")

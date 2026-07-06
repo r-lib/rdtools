@@ -104,7 +104,7 @@ topic_find_package <- function(topic, package, dependencies) {
   check_string(package)
   check_character(dependencies)
 
-  if (topic_has(package, topic)) {
+  if (topic_exists(topic, package)) {
     return(NA_character_)
   }
 
@@ -125,7 +125,19 @@ topic_find_package <- function(topic, package, dependencies) {
   }
 }
 
-topic_has <- function(package, topic) {
+#' Does a package document a topic?
+#'
+#' Checks whether `package` has an exact alias matching `topic`.
+#'
+#' @param topic A single string naming an alias, matched exactly.
+#' @param package A package name or source package path. An unavailable package
+#'   returns `FALSE`.
+#' @returns A single `TRUE` or `FALSE`.
+#' @export
+#' @examples
+#' topic_exists("rnorm", "stats")
+#' topic_exists("not-a-topic", "stats")
+topic_exists <- function(topic, package) {
   !is.null(topic_find(topic, package))
 }
 
