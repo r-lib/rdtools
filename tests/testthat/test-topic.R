@@ -79,6 +79,11 @@ test_that("topic_exists() detects documented topics", {
   expect_identical(topic_exists("foo", "not-an-installed-package"), FALSE)
 })
 
+test_that("topic_source() finds the package supplying an object", {
+  expect_identical(topic_source("rnorm", "stats"), "stats")
+  expect_identical(topic_source("local_tempdir", "withr"), "withr")
+})
+
 test_that("topic_find() searches the search path by default", {
   found <- topic_find("mean")
   expect_equal(found$package, "base")

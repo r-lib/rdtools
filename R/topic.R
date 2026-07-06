@@ -111,7 +111,9 @@ topic_qualifier <- function(topic, package, dependencies) {
   packages <- unique(c(dependencies, pkgs_search_base()))
   matches <- topic_find_all(topic, packages)
   found <- vapply(matches, `[[`, character(1), "package")
-  found <- unique(vapply(found, topic_source, character(1), topic = topic))
+  found <- unique(
+    vapply(found, \(package) topic_source(topic, package), character(1))
+  )
 
   base <- pkgs_search_base()
   if (length(found) == 0) {
@@ -141,7 +143,22 @@ topic_exists <- function(topic, package) {
   !is.null(topic_find(topic, package))
 }
 
-topic_source <- function(package, topic) {
+#' Find the source package for a topic
+#'
+#' Determines which package supplies the object associated with a documented
+#' topic. This resolves re-exported functions and imported objects to the
+#' package where they originate.
+#'
+#' @param topic A single string naming a topic.
+#' @param package A package name.
+#' @returns A single package name.
+#' @export
+#' @examples
+#' topic_source("rnorm", "stats")
+topic_source <- function(topic, package) {
+  check_string(topic)
+  check_string(package)
+
   if (package %in% pkgs_search_base()) {
     return(package)
   }
@@ -158,7 +175,7 @@ topic_source <- function(package, topic) {
   if (is.function(object)) {
     env <- environment(object)
     if (isNamespace(env)) {
-      return(getNamespaceName(env))
+      return(unname(getNamespaceName(env)))
     }
     return(package)
   }
