@@ -1,0 +1,73 @@
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+# rdtools
+
+<!-- badges: start -->
+<!-- badges: end -->
+
+rdtools provides fast, cached lookup of help topics and aliases across
+installed, source, and in-development packages, plus efficient retrieval
+of parsed Rd objects. It’s low-level infrastructure designed to be
+shared by documentation tools like roxygen2, pkgdown, pkgload, and
+downlit, which currently each implement their own variant of this
+machinery.
+
+## Installation
+
+You can install the development version of rdtools from
+[GitHub](https://github.com/) with:
+
+``` r
+# install.packages("pak")
+pak::pak("r-lib/rdtools")
+```
+
+## Usage
+
+`pkg_topics()` maps every alias a package documents to the Rd file that
+documents it:
+
+``` r
+library(rdtools)
+
+head(pkg_topics("stats"))
+#>    stats-package  .checkMFClasses      .getXlevels          .lm.fit 
+#>  "stats-package" "checkMFClasses" "checkMFClasses"          "lmfit" 
+#>         .MFclass    .nknots.smspl 
+#> "checkMFClasses"  "smooth.spline"
+```
+
+`topic_find()` tells you which package documents a topic, searching the
+attached packages by default:
+
+``` r
+topic_find("rnorm")
+#> $package
+#> [1] "stats"
+#> 
+#> $file
+#> [1] "Normal"
+
+topic_parse("dplyr::across")
+#> $package
+#> [1] "dplyr"
+#> 
+#> $topic
+#> [1] "across"
+```
+
+`topic_rd()` retrieves the parsed Rd for a topic, fetching it lazily
+from the help database for installed packages, or parsing `man/*.Rd` for
+source packages:
+
+``` r
+rd <- topic_rd("rnorm", "stats")
+class(rd)
+#> [1] "Rd"
+```
+
+All lookups are backed by per-package indexes that are cached and
+automatically revalidated when the underlying files change, so they’re
+cheap enough to call in a tight loop (e.g. once per link while rendering
+documentation).
