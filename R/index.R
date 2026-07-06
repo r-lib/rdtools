@@ -1,17 +1,16 @@
 # Per-package topic indexes, cached in `the$index` keyed by the caller's
 # `package` argument (a name, or a normalized path for source packages).
 # Each entry is an environment so the lazily-populated Rd cache (entry$rd)
-# persists without reassignment. Installed entries are validated on every
-# access. Source entries remain valid until explicitly reset, so repeated
-# lookups avoid scanning every file in man/.
+# persists without reassignment. Entries remain valid until explicitly reset;
+# installed entries are reset automatically when their namespace is unloaded.
 
 index <- function(package) {
   check_string(package)
   key <- index_key(package)
 
   entry <- get0(key, envir = the$index, inherits = FALSE)
-  if (is.null(entry) || !index_valid(entry)) {
-    entry <- index_build(package)
+  if (is.null(entry)) {
+    entry <- index_build(package, key)
     assign(key, entry, envir = the$index)
   }
   entry
@@ -20,8 +19,9 @@ index <- function(package) {
 #' Reset cached package indexes
 #'
 #' Clears the cached topic index and parsed Rd objects for `package`.
-#' Only needed for source packages, and will generally be automatically
-#' be called by roxygen2.
+#' This will generally be called automatically by roxygen2 for source packages.
+#' Installed package indexes are automatically reset when their namespace is
+#' unloaded.
 #'
 #' @param package A package name, or a path to the source directory of a
 #'   package.
@@ -31,9 +31,7 @@ pkg_cache_reset <- function(package) {
   check_string(package)
   key <- index_key(package)
 
-  if (exists(key, envir = the$index, inherits = FALSE)) {
-    rm(list = key, envir = the$index)
-  }
+  index_drop(key)
   invisible(NULL)
 }
 
@@ -43,6 +41,25 @@ index_key <- function(package) {
   } else {
     package
   }
+}
+
+index_drop <- function(key) {
+  if (exists(key, envir = the$index, inherits = FALSE)) {
+    rm(list = key, envir = the$index)
+  }
+}
+
+index_register_unload <- function(package, key) {
+  if (exists(package, envir = the$unload_hooks, inherits = FALSE)) {
+    return()
+  }
+
+  setHook(
+    packageEvent(package, "onUnload"),
+    function(...) index_drop(key),
+    action = "append"
+  )
+  assign(package, TRUE, envir = the$unload_hooks)
 }
 
 # A path (as opposed to a package name) is anything containing a path
@@ -83,35 +100,17 @@ index_resolve <- function(package) {
   }
 }
 
-# Cheap change-detection stamp for installed packages.
-index_stamp <- function(res) {
-  path <- file.path(res$path, "help", "aliases.rds")
-  list(mtime = file.mtime(path), size = file.size(path))
-}
-
-index_valid <- function(entry) {
-  if (entry$backend == "source") {
-    return(TRUE)
-  }
-
-  res <- tryCatch(index_resolve(entry$input), error = function(e) NULL)
-  identical(res, entry$resolution) &&
-    identical(index_stamp(res), entry$stamp)
-}
-
-index_build <- function(package) {
+index_build <- function(package, key) {
   res <- index_resolve(package)
 
   entry <- new.env(parent = emptyenv())
-  entry$input <- package
   entry$name <- res$name
   entry$path <- res$path
   entry$backend <- res$backend
-  entry$resolution <- res
   entry$rd <- new.env(parent = emptyenv())
 
   if (res$backend == "installed") {
-    entry$stamp <- index_stamp(res)
+    index_register_unload(res$name, key)
     topics <- readRDS(file.path(res$path, "help", "aliases.rds"))
   } else {
     files <- rd_files(file.path(res$path, "man"))

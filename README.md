@@ -67,7 +67,8 @@ class(rd)
 #> [1] "Rd"
 ```
 
-All lookups are backed by per-package indexes that are cached and
-automatically revalidated when the underlying files change, so they’re
-cheap enough to call in a tight loop (e.g. once per link while rendering
-documentation).
+All lookups are backed by per-package indexes that remain cached until
+explicitly reset. Installed package indexes are reset when their namespace is
+unloaded, while source package indexes can be reset with
+`pkg_cache_reset()`. This makes lookups cheap enough to call in a tight loop
+(e.g. once per link while rendering documentation).

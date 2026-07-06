@@ -15,6 +15,7 @@ package.}
 }
 \description{
 Clears the cached topic index and parsed Rd objects for \code{package}.
-Only needed for source packages, and will generally be automatically
-be called by roxygen2.
+This will generally be called automatically by roxygen2 for source packages.
+Installed package indexes are automatically reset when their namespace is
+unloaded.
 }

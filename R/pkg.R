@@ -12,10 +12,8 @@
 #' * **Source** packages, when `package` is a path to a package directory
 #'   rather than a name.
 #'
-#' Indexes are cached. Installed packages are revalidated against file
-#' modification times on every access. Source packages remain cached until
-#' [pkg_cache_reset()] is called, avoiding repeated scans of their `man/`
-#' directories.
+#' Indexes remain cached until [pkg_cache_reset()] is called. Installed package
+#' indexes are also reset automatically when their namespace is unloaded.
 #'
 #' For source packages, `\alias{}` extraction is line-based: any number of
 #' aliases may appear anywhere on a line, but an alias must open and close

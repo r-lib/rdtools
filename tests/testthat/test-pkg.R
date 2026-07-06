@@ -117,6 +117,23 @@ test_that("pkg_cache_reset() drops the requested cached index", {
   expect_equal(pkg_topics("stats")[["rnorm"]], "Normal")
 })
 
+test_that("installed package unload hooks drop the cached index", {
+  package <- "rdtoolsHookTest"
+  key <- "hook-test"
+  event <- packageEvent(package, "onUnload")
+  old_hooks <- getHook(event)
+  withr::defer(setHook(event, old_hooks, action = "replace"))
+
+  assign(key, new.env(), envir = the$index)
+  index_register_unload(package, key)
+  index_register_unload(package, key)
+
+  hooks <- getHook(event)
+  expect_length(hooks, length(old_hooks) + 1)
+  hooks[[length(hooks)]]()
+  expect_equal(intersect(ls(the$index), key), character())
+})
+
 test_that("pkg_search_path() puts attached packages before base fallbacks", {
   packages <- pkg_search_path()
   expect_true("base" %in% packages)
