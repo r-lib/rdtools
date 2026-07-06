@@ -1,0 +1,21 @@
+Package: rdtools
+Title: Efficient Manipulation of 'Rd' Files and Help Topics
+Version: 0.0.0.9000
+Authors@R: c(
+    person("Hadley", "Wickham", , "hadley@posit.co", role = c("aut", "cre")),
+    person("Posit Software, PBC", role = c("cph", "fnd"))
+  )
+Description: Fast, cached lookup of help topics and aliases across
+    installed, source, and in-development packages, plus efficient
+    retrieval of parsed 'Rd' objects.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 8.0.0
+Imports:
+    stats,
+    tools
+Suggests:
+    testthat (>= 3.0.0),
+    withr
+Config/testthat/edition: 3

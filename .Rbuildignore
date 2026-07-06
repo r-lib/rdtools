@@ -1,0 +1,7 @@
+^rdtools\.Rproj$
+^\.Rproj\.user$
+^LICENSE\.md$
+^[.]?air[.]toml$
+^\.vscode$
+^AGENTS\.md$
+^\.claude$

@@ -1,0 +1,9 @@
+.Rproj.user
+src/*.o
+src/*.so
+src/*.dll
+.Rhistory
+.RData
+.httr-oauth
+.DS_Store
+.quarto
