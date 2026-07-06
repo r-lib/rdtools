@@ -24,5 +24,6 @@ Checks whether any of \code{packages} has an exact alias matching \code{topic}.
 \examples{
 topic_exists("rnorm", "stats")
 topic_exists("rnorm", c("base", "stats"))
+topic_exists("median")
 topic_exists("not-a-topic", "stats")
 }

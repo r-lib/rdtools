@@ -13,13 +13,14 @@ topic_rd_path(topic, package)
 package.}
 }
 \value{
-The path to a \code{.Rd} file.
+The path to a \code{.Rd} file, or \code{NULL} if the package or topic
+doesn't exist, or if the package doesn't have Rd files on disk.
 }
 \description{
 Returns the path to the \code{.Rd} file that documents \code{topic}. Rd files only
 exist on disk for source and in-development packages; installed packages
 store their documentation in a binary database, so \code{topic_rd_path()}
-errors for them. Use \code{\link[=topic_rd]{topic_rd()}} if you want the parsed contents
+returns \code{NULL} for them. Use \code{\link[=topic_rd]{topic_rd()}} if you want the parsed contents
 regardless of where they are stored.
 }
 \examples{

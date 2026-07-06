@@ -16,12 +16,14 @@ from. If it documents \code{topic}, no qualifier is needed.}
 typically the dependencies of \code{from}. \link[=pkg_search_base]{Base packages} are always included.}
 }
 \value{
-A character vector with special length and missingness semantics:
 \itemize{
-\item \code{NA_character_} means the topic was found but needs no qualification.
-\item \code{character()} means the topic was not found.
-\item One package name means the topic has one unambiguous qualifier.
-\item Multiple package names mean the topic is ambiguous.
+\item \code{NULL} if the topic isn't documented by \code{from}, \code{packages}, or the base
+packages.
+\item \code{NA_character_} if the topic needs no qualifier because it's documented
+by \code{from} or a base package.
+\item Otherwise, the package name(s) that could qualify the topic: usually
+one, but more if the topic is ambiguous, in which case it's up to the
+caller to decide how to respond.
 }
 }
 \description{

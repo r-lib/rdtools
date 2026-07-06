@@ -119,15 +119,24 @@ test_that("topic_qualifier() determines package qualification", {
   expect_identical(topic_qualifier("foo", path, "withr"), NA_character_)
   expect_identical(topic_qualifier("rnorm", path, "withr"), NA_character_)
   expect_identical(topic_qualifier("local_tempdir", path, "withr"), "withr")
-  expect_identical(
-    topic_qualifier("definitely-not-a-topic", path, "withr"),
-    character()
-  )
+  expect_null(topic_qualifier("definitely-not-a-topic", path, "withr"))
 })
 
 test_that("topic_qualifier() defaults to searching only base packages", {
   path <- local_test_pkg("foo.Rd" = "foo")
   expect_identical(topic_qualifier("rnorm", path), NA_character_)
+})
+
+test_that("topic_qualifier() returns all candidates for ambiguous topics", {
+  from <- local_test_pkg("bar.Rd" = "bar")
+  one <- local_test_pkg("foo.Rd" = "foo", name = "pkg1")
+  two <- local_test_pkg("foo.Rd" = "foo", name = "pkg2")
+  local_mocked_bindings(topic_origin = function(topic, package) package)
+
+  expect_identical(
+    topic_qualifier("foo", from, c(one, two)),
+    c("pkg1", "pkg2")
+  )
 })
 
 test_that("topic_rd() fetches parsed Rd from installed packages", {
@@ -154,11 +163,9 @@ test_that("topic_rd() caches parsed Rd", {
   expect_identical(rd1, rd2)
 })
 
-test_that("topic_rd() errors clearly on missing topics", {
-  expect_error(
-    topic_rd("not-a-topic", "stats"),
-    "Can't find topic 'not-a-topic' in package 'stats'"
-  )
+test_that("topic_rd() returns NULL for missing topics and packages", {
+  expect_null(topic_rd("not-a-topic", "stats"))
+  expect_null(topic_rd("rnorm", "not-an-installed-package"))
 })
 
 test_that("topic_rd_path() returns the path for source packages", {
@@ -169,13 +176,9 @@ test_that("topic_rd_path() returns the path for source packages", {
   )
 })
 
-test_that("topic_rd_path() errors on missing topics and installed packages", {
-  expect_error(
-    topic_rd_path("not-a-topic", "stats"),
-    "Can't find topic 'not-a-topic' in package 'stats'"
-  )
-  expect_error(
-    topic_rd_path("rnorm", "stats"),
-    "don't keep Rd files on disk"
-  )
+test_that("topic_rd_path() returns NULL when there's no Rd file on disk", {
+  path <- local_test_pkg("foo.Rd" = "foo")
+  expect_null(topic_rd_path("not-a-topic", path))
+  expect_null(topic_rd_path("rnorm", "stats"))
+  expect_null(topic_rd_path("rnorm", "not-an-installed-package"))
 })

@@ -14,7 +14,9 @@ package.}
 }
 \value{
 An Rd object: a recursive structure of class \code{"Rd"}, as returned
-by \code{\link[tools:parse_Rd]{tools::parse_Rd()}}.
+by \code{\link[tools:parse_Rd]{tools::parse_Rd()}}. Returns \code{NULL} if the package or topic doesn't
+exist; use \code{\link[=topic_exists]{topic_exists()}} first if you need to distinguish that from
+other problems.
 }
 \description{
 Retrieves the parsed Rd object documenting \code{topic} in \code{package}. For

@@ -100,11 +100,14 @@ topic_find_all <- function(topic, packages = pkg_search_attached()) {
 #' @param packages A character vector of additional packages to search,
 #'   typically the dependencies of `from`. [Base
 #'   packages][pkg_search_base] are always included.
-#' @returns A character vector with special length and missingness semantics:
-#'   * `NA_character_` means the topic was found but needs no qualification.
-#'   * `character()` means the topic was not found.
-#'   * One package name means the topic has one unambiguous qualifier.
-#'   * Multiple package names mean the topic is ambiguous.
+#' @returns
+#' * `NULL` if the topic isn't documented by `from`, `packages`, or the base
+#'   packages.
+#' * `NA_character_` if the topic needs no qualifier because it's documented
+#'   by `from` or a base package.
+#' * Otherwise, the package name(s) that could qualify the topic: usually
+#'   one, but more if the topic is ambiguous, in which case it's up to the
+#'   caller to decide how to respond.
 #' @export
 #' @examples
 #' topic_qualifier("rnorm", "stats")
@@ -124,9 +127,7 @@ topic_qualifier <- function(topic, from, packages = character()) {
   )
 
   if (length(found) == 0) {
-    character()
-  } else if (length(found) == 1) {
-    if (found %in% base) NA_character_ else found
+    NULL
   } else if (all(found %in% base)) {
     NA_character_
   } else {
@@ -144,6 +145,7 @@ topic_qualifier <- function(topic, from, packages = character()) {
 #' @examples
 #' topic_exists("rnorm", "stats")
 #' topic_exists("rnorm", c("base", "stats"))
+#' topic_exists("median")
 #' topic_exists("not-a-topic", "stats")
 topic_exists <- function(topic, packages = pkg_search_attached()) {
   !is.null(topic_find(topic, packages))
@@ -210,18 +212,24 @@ topic_origin <- function(topic, package) {
 #' @param package A package name, or a path to the source directory of a
 #'   package.
 #' @returns An Rd object: a recursive structure of class `"Rd"`, as returned
-#'   by [tools::parse_Rd()].
+#'   by [tools::parse_Rd()]. Returns `NULL` if the package or topic doesn't
+#'   exist; use [topic_exists()] first if you need to distinguish that from
+#'   other problems.
 #' @export
 #' @examples
 #' rd <- topic_rd("rnorm", "stats")
 #' class(rd)
 topic_rd <- function(topic, package) {
   check_string(topic)
+  check_string(package)
 
+  if (!is_pkg_path(package) && !pkg_is_installed(package)) {
+    return(NULL)
+  }
   entry <- index(package)
   file <- get0(topic, envir = entry$env, inherits = FALSE)
   if (is.null(file)) {
-    stop(sprintf("Can't find topic '%s' in package '%s'.", topic, entry$name))
+    return(NULL)
   }
 
   rd <- get0(file, envir = entry$rd, inherits = FALSE)
@@ -244,11 +252,12 @@ topic_rd <- function(topic, package) {
 #' Returns the path to the `.Rd` file that documents `topic`. Rd files only
 #' exist on disk for source and in-development packages; installed packages
 #' store their documentation in a binary database, so `topic_rd_path()`
-#' errors for them. Use [topic_rd()] if you want the parsed contents
+#' returns `NULL` for them. Use [topic_rd()] if you want the parsed contents
 #' regardless of where they are stored.
 #'
 #' @inheritParams topic_rd
-#' @returns The path to a `.Rd` file.
+#' @returns The path to a `.Rd` file, or `NULL` if the package or topic
+#'   doesn't exist, or if the package doesn't have Rd files on disk.
 #' @export
 #' @examples
 #' # Rd files only exist on disk for source packages, so make a minimal one
@@ -263,17 +272,18 @@ topic_rd <- function(topic, package) {
 #' topic_rd_path("foo", pkg)
 topic_rd_path <- function(topic, package) {
   check_string(topic)
+  check_string(package)
 
+  if (!is_pkg_path(package) && !pkg_is_installed(package)) {
+    return(NULL)
+  }
   entry <- index(package)
+  if (entry$backend != "source") {
+    return(NULL)
+  }
   file <- get0(topic, envir = entry$env, inherits = FALSE)
   if (is.null(file)) {
-    stop(sprintf("Can't find topic '%s' in package '%s'.", topic, entry$name))
-  }
-  if (entry$backend != "source") {
-    stop(sprintf(
-      "Can't get an Rd path for '%s': installed packages don't keep Rd files on disk.",
-      entry$name
-    ))
+    return(NULL)
   }
   entry$files[[file]]
 }
