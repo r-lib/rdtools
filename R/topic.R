@@ -28,37 +28,144 @@ topic_parse <- function(topic) {
   }
 }
 
-#' Find which package documents a topic
+#' Find packages that document a topic
 #'
-#' Looks `topic` up in each of `packages` in order and returns the first
-#' hit. Lookups use the cached per-package indexes built by [pkg_topics()],
-#' so scanning even a long search set is cheap.
+#' @description
+#' `topic_find()` looks `topic` up in each of `packages` in order and returns
+#' the first hit. `topic_find_all()` returns every hit. Lookups use the cached
+#' per-package indexes built by [pkg_topics()], so scanning even a long search
+#' set is cheap.
 #'
 #' @param topic A single string naming an alias, matched exactly.
 #'   Use [topic_parse()] first if you need to handle qualified topics like
 #'   `"pkg::foo"`.
 #' @param packages A character vector of package names (and/or source
-#'   package paths) to search, in order. Defaults to [pkg_search_path()].
-#'   All packages must be findable; an uninstalled package is an error.
-#' @returns `NULL` if the topic isn't found; otherwise a list with elements:
+#'   package paths) to search, in order. Defaults to [pkg_search_attached()].
+#'   Unavailable packages are skipped.
+#' @returns `topic_find()` returns `NULL` if the topic isn't found; otherwise a
+#'   list with elements:
 #'   * `package`: the package that documents the topic.
 #'   * `file`: the name of the Rd file (without extension).
+#'
+#'   `topic_find_all()` returns a list of these results, or an empty list if the
+#'   topic isn't found.
 #' @export
 #' @examples
 #' topic_find("rnorm")
-#' topic_find("median", c("dplyr", "stats"))
+#' topic_find("mean", c("stats", "base"))
+#' topic_find_all("plot", c("graphics", "base"))
 #' topic_find("no-such-topic")
-topic_find <- function(topic, packages = pkg_search_path()) {
-  check_string(topic)
+topic_find <- function(topic, packages = pkg_search_attached()) {
+  found <- topic_find_all(topic, packages)
+  if (length(found) == 0) NULL else found[[1]]
+}
 
+#' @rdname topic_find
+#' @export
+topic_find_all <- function(topic, packages = pkg_search_attached()) {
+  check_string(topic)
+  check_character(packages)
+
+  found <- list()
   for (package in packages) {
-    entry <- index(package)
+    entry <- tryCatch(
+      index(package),
+      packageNotFoundError = function(cnd) NULL
+    )
+    if (is.null(entry)) {
+      next
+    }
     file <- get0(topic, envir = entry$env, inherits = FALSE)
     if (!is.null(file)) {
-      return(list(package = entry$name, file = file))
+      found[[length(found) + 1]] <- list(package = entry$name, file = file)
     }
   }
-  NULL
+  found
+}
+
+#' Find the package qualifier for a topic
+#'
+#' Determines whether a topic needs a package qualifier when linking from the
+#' documentation of another package. The current package is checked first,
+#' followed by `dependencies`, and then the base packages. Re-exported objects
+#' are attributed to their original package.
+#'
+#' @param topic A single string naming an alias, matched exactly.
+#' @param package The name or source directory of the current package.
+#' @param dependencies A character vector of dependencies to search.
+#'   [Base packages][pkgs_search_base] are always included.
+#' @returns A character vector with special length and missingness semantics:
+#'   * `NA_character_` means the topic was found but needs no qualification.
+#'   * `character()` means the topic was not found.
+#'   * One package name means the topic has one unambiguous qualifier.
+#'   * Multiple package names mean the topic is ambiguous.
+#' @export
+#' @examples
+#' topic_find_package("rnorm", "stats", character())
+topic_find_package <- function(topic, package, dependencies) {
+  check_string(topic)
+  check_string(package)
+  check_character(dependencies)
+
+  if (topic_has(package, topic)) {
+    return(NA_character_)
+  }
+
+  packages <- unique(c(dependencies, pkgs_search_base()))
+  matches <- topic_find_all(topic, packages)
+  found <- vapply(matches, `[[`, character(1), "package")
+  found <- unique(vapply(found, topic_source, character(1), topic = topic))
+
+  base <- pkgs_search_base()
+  if (length(found) == 0) {
+    character()
+  } else if (length(found) == 1) {
+    if (found %in% base) NA_character_ else found
+  } else if (all(found %in% base)) {
+    NA_character_
+  } else {
+    found
+  }
+}
+
+topic_has <- function(package, topic) {
+  tryCatch(
+    !is.null(topic_find(topic, package)),
+    error = function(cnd) FALSE
+  )
+}
+
+topic_source <- function(package, topic) {
+  if (package %in% pkgs_search_base()) {
+    return(package)
+  }
+
+  ns <- asNamespace(package)
+  if (!exists(topic, envir = ns, inherits = TRUE)) {
+    return(package)
+  }
+
+  object <- get(topic, envir = ns, inherits = TRUE)
+  if (is.primitive(object)) {
+    return("base")
+  }
+  if (is.function(object)) {
+    env <- environment(object)
+    if (isNamespace(env)) {
+      return(getNamespaceName(env))
+    }
+    return(package)
+  }
+
+  imports <- getNamespaceImports(ns)
+  imports <- imports[names(imports) != ""]
+  matches <- vapply(imports, `%in%`, logical(1), x = topic)
+  if (!any(matches)) {
+    return(package)
+  }
+
+  packages <- names(matches)[matches]
+  packages[[length(packages)]]
 }
 
 #' Get the parsed Rd for a topic

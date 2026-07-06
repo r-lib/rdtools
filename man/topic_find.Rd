@@ -2,9 +2,12 @@
 % Please edit documentation in R/topic.R
 \name{topic_find}
 \alias{topic_find}
-\title{Find which package documents a topic}
+\alias{topic_find_all}
+\title{Find packages that document a topic}
 \usage{
-topic_find(topic, packages = pkg_search_path())
+topic_find(topic, packages = pkg_search_attached())
+
+topic_find_all(topic, packages = pkg_search_attached())
 }
 \arguments{
 \item{topic}{A single string naming an alias, matched exactly.
@@ -12,23 +15,29 @@ Use \code{\link[=topic_parse]{topic_parse()}} first if you need to handle qualif
 \code{"pkg::foo"}.}
 
 \item{packages}{A character vector of package names (and/or source
-package paths) to search, in order. Defaults to \code{\link[=pkg_search_path]{pkg_search_path()}}.
-All packages must be findable; an uninstalled package is an error.}
+package paths) to search, in order. Defaults to \code{\link[=pkg_search_attached]{pkg_search_attached()}}.
+Unavailable packages are skipped.}
 }
 \value{
-\code{NULL} if the topic isn't found; otherwise a list with elements:
+\code{topic_find()} returns \code{NULL} if the topic isn't found; otherwise a
+list with elements:
 \itemize{
 \item \code{package}: the package that documents the topic.
 \item \code{file}: the name of the Rd file (without extension).
 }
+
+\code{topic_find_all()} returns a list of these results, or an empty list if the
+topic isn't found.
 }
 \description{
-Looks \code{topic} up in each of \code{packages} in order and returns the first
-hit. Lookups use the cached per-package indexes built by \code{\link[=pkg_topics]{pkg_topics()}},
-so scanning even a long search set is cheap.
+\code{topic_find()} looks \code{topic} up in each of \code{packages} in order and returns
+the first hit. \code{topic_find_all()} returns every hit. Lookups use the cached
+per-package indexes built by \code{\link[=pkg_topics]{pkg_topics()}}, so scanning even a long search
+set is cheap.
 }
 \examples{
 topic_find("rnorm")
-topic_find("median", c("dplyr", "stats"))
+topic_find("mean", c("stats", "base"))
+topic_find_all("plot", c("graphics", "base"))
 topic_find("no-such-topic")
 }

@@ -46,6 +46,17 @@ test_that("topic_find() respects package order", {
   expect_equal(found$package, "base")
 })
 
+test_that("topic_find_all() returns every match", {
+  expect_equal(
+    topic_find_all("plot", c("graphics", "base")),
+    list(
+      list(package = "graphics", file = "plot.default"),
+      list(package = "base", file = "plot")
+    )
+  )
+  expect_equal(topic_find_all("not-a-topic", "base"), list())
+})
+
 test_that("topic_find() returns NULL for missing topics", {
   expect_null(topic_find("definitely-not-a-topic", "stats"))
 })
@@ -55,8 +66,12 @@ test_that("topic_find() searches the search path by default", {
   expect_equal(found$package, "base")
 })
 
-test_that("topic_find() errors on uninstalled packages", {
-  expect_error(topic_find("foo", "not-an-installed-package"))
+test_that("topic_find() skips uninstalled packages", {
+  expect_null(topic_find("foo", "not-an-installed-package"))
+  expect_equal(
+    topic_find("rnorm", c("not-an-installed-package", "stats")),
+    list(package = "stats", file = "Normal")
+  )
 })
 
 test_that("topic_find() finds topics in source packages", {
@@ -64,6 +79,18 @@ test_that("topic_find() finds topics in source packages", {
   expect_equal(
     topic_find("bar", path),
     list(package = "testpkg", file = "foo")
+  )
+})
+
+test_that("topic_find_package() determines package qualification", {
+  path <- local_test_pkg("foo.Rd" = "foo")
+
+  expect_identical(topic_find_package("foo", path, "withr"), NA_character_)
+  expect_identical(topic_find_package("rnorm", path, "withr"), NA_character_)
+  expect_identical(topic_find_package("local_tempdir", path, "withr"), "withr")
+  expect_identical(
+    topic_find_package("definitely-not-a-topic", path, "withr"),
+    character()
   )
 })
 

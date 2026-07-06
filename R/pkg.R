@@ -31,16 +31,44 @@ pkg_topics <- function(package) {
 
 #' Packages searched for help by default
 #'
-#' The packages a bare `?topic` can see: every attached package, in search
-#' path order, followed by the base packages that are always available.
-#' This is the default search set for [topic_find()].
+#' @description
+#' `pkg_search_attached()` returns the packages a bare `?topic` can see: every
+#' attached package, in search path order, followed by the base packages that
+#' are always available. This is the default search set for [topic_find()].
+#'
+#' `pkgs_search_base()` returns the base packages that are always searched.
 #'
 #' @returns A character vector of package names.
 #' @export
 #' @examples
-#' pkg_search_path()
-pkg_search_path <- function() {
+#' pkg_search_attached()
+#' pkgs_search_base()
+pkg_search_attached <- function() {
   attached <- sub("^package:", "", grep("^package:", search(), value = TRUE))
-  always <- c("datasets", "utils", "grDevices", "graphics", "stats", "base")
-  unique(c(attached, always))
+  unique(c(attached, pkgs_search_base()))
+}
+
+#' @rdname pkg_search_attached
+#' @export
+pkgs_search_base <- function() {
+  if (getRversion() >= "4.4.0") {
+    tools::standard_package_names()[["base"]]
+  } else {
+    c(
+      "base",
+      "compiler",
+      "datasets",
+      "graphics",
+      "grDevices",
+      "grid",
+      "methods",
+      "parallel",
+      "splines",
+      "stats",
+      "stats4",
+      "tcltk",
+      "tools",
+      "utils"
+    )
+  }
 }

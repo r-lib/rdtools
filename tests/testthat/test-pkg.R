@@ -134,10 +134,8 @@ test_that("installed package unload hooks drop the cached index", {
   expect_equal(intersect(ls(the$index), key), character())
 })
 
-test_that("pkg_search_path() puts attached packages before base fallbacks", {
-  packages <- pkg_search_path()
-  expect_true("base" %in% packages)
-  expect_true("stats" %in% packages)
+test_that("pkg_search_attached() puts attached packages before base fallbacks", {
+  packages <- pkg_search_attached()
+  expect_setequal(intersect(packages, pkgs_search_base()), pkgs_search_base())
   expect_equal(anyDuplicated(packages), 0L)
-  expect_equal(packages[[length(packages)]], "base")
 })
