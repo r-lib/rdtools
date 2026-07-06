@@ -7,10 +7,12 @@
 <url><loc>/index.html</loc></url>
 <url><loc>/reference/index.html</loc></url>
 <url><loc>/reference/pkg_cache_reset.html</loc></url>
-<url><loc>/reference/pkg_search_path.html</loc></url>
+<url><loc>/reference/pkg_search_attached.html</loc></url>
 <url><loc>/reference/pkg_topics.html</loc></url>
 <url><loc>/reference/rdtools-package.html</loc></url>
+<url><loc>/reference/topic_exists.html</loc></url>
 <url><loc>/reference/topic_find.html</loc></url>
+<url><loc>/reference/topic_find_package.html</loc></url>
 <url><loc>/reference/topic_parse.html</loc></url>
 <url><loc>/reference/topic_rd.html</loc></url>
 </urlset>
