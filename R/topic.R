@@ -98,8 +98,8 @@ topic_find_all <- function(topic, packages = pkg_search_attached()) {
 #'   * Multiple package names mean the topic is ambiguous.
 #' @export
 #' @examples
-#' topic_find_package("rnorm", "stats", character())
-topic_find_package <- function(topic, package, dependencies) {
+#' topic_qualifier("rnorm", "stats", character())
+topic_qualifier <- function(topic, package, dependencies) {
   check_string(topic)
   check_string(package)
   check_character(dependencies)

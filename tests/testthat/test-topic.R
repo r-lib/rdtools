@@ -88,14 +88,14 @@ test_that("topic_find() finds topics in source packages", {
   )
 })
 
-test_that("topic_find_package() determines package qualification", {
+test_that("topic_qualifier() determines package qualification", {
   path <- local_test_pkg("foo.Rd" = "foo")
 
-  expect_identical(topic_find_package("foo", path, "withr"), NA_character_)
-  expect_identical(topic_find_package("rnorm", path, "withr"), NA_character_)
-  expect_identical(topic_find_package("local_tempdir", path, "withr"), "withr")
+  expect_identical(topic_qualifier("foo", path, "withr"), NA_character_)
+  expect_identical(topic_qualifier("rnorm", path, "withr"), NA_character_)
+  expect_identical(topic_qualifier("local_tempdir", path, "withr"), "withr")
   expect_identical(
-    topic_find_package("definitely-not-a-topic", path, "withr"),
+    topic_qualifier("definitely-not-a-topic", path, "withr"),
     character()
   )
 })
