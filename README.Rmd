@@ -16,6 +16,8 @@ knitr::opts_chunk$set(
 # rdtools
 
 <!-- badges: start -->
+[![R-CMD-check](https://github.com/r-lib/rdtools/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/r-lib/rdtools/actions/workflows/R-CMD-check.yaml)
+[![Codecov test coverage](https://codecov.io/gh/r-lib/rdtools/graph/badge.svg)](https://app.codecov.io/gh/r-lib/rdtools)
 <!-- badges: end -->
 
 rdtools provides fast, cached lookup of help topics and aliases across

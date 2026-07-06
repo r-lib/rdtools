@@ -6,3 +6,5 @@
 ^AGENTS\.md$
 ^\.claude$
 ^README\.Rmd$
+^\.github$
+^codecov\.yml$
