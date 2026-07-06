@@ -8,6 +8,14 @@
 \description{
 Fast, cached lookup of help topics and aliases across installed, source, and in-development packages, plus efficient retrieval of parsed 'Rd' objects.
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/r-lib/rdtools}
+  \item Report bugs at \url{https://github.com/r-lib/rdtools/issues}
+}
+
+}
 \author{
 \strong{Maintainer}: Hadley Wickham \email{hadley@posit.co}
 
