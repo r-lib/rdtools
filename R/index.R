@@ -112,7 +112,8 @@ pkg_find <- function(package) {
 
 # A minimal rlang::is_installed() for a single package without version checks.
 pkg_is_installed <- function(package) {
-  !is.null(pkg_find_path(package))
+  exists(package, envir = the$index, inherits = FALSE) ||
+    !is.null(pkg_find_path(package))
 }
 
 pkg_find_path <- function(package) {

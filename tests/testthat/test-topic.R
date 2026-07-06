@@ -57,6 +57,18 @@ test_that("topic_find_all() returns every match", {
   expect_equal(topic_find_all("not-a-topic", "base"), list())
 })
 
+test_that("topic_find_all() does not recheck cached packages", {
+  pkg_topics("stats")
+  local_mocked_bindings(
+    pkg_find_path = function(package) stop("unexpected filesystem lookup")
+  )
+
+  expect_equal(
+    topic_find_all("rnorm", "stats"),
+    list(list(package = "stats", file = "Normal"))
+  )
+})
+
 test_that("topic_find() returns NULL for missing topics", {
   expect_null(topic_find("definitely-not-a-topic", "stats"))
 })
