@@ -4,15 +4,16 @@
 \alias{topic_qualifier}
 \title{Find the package qualifier for a topic}
 \usage{
-topic_qualifier(topic, package, dependencies)
+topic_qualifier(topic, from, packages = character())
 }
 \arguments{
 \item{topic}{A single string naming an alias, matched exactly.}
 
-\item{package}{The name or source directory of the current package.}
+\item{from}{The name or source directory of the package you are linking
+from. If it documents \code{topic}, no qualifier is needed.}
 
-\item{dependencies}{A character vector of dependencies to search.
-\link[=pkgs_search_base]{Base packages} are always included.}
+\item{packages}{A character vector of additional packages to search,
+typically the dependencies of \code{from}. \link[=pkg_search_base]{Base packages} are always included.}
 }
 \value{
 A character vector with special length and missingness semantics:
@@ -25,10 +26,10 @@ A character vector with special length and missingness semantics:
 }
 \description{
 Determines whether a topic needs a package qualifier when linking from the
-documentation of another package. The current package is checked first,
-followed by \code{dependencies}, and then the base packages. Re-exported objects
+documentation of another package. The \code{from} package is checked first,
+followed by \code{packages}, and then the base packages. Re-exported objects
 are attributed to their original package.
 }
 \examples{
-topic_qualifier("rnorm", "stats", character())
+topic_qualifier("rnorm", "stats")
 }

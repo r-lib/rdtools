@@ -4,18 +4,25 @@
 \alias{pkg_cache_reset}
 \title{Reset cached package indexes}
 \usage{
-pkg_cache_reset(package)
+pkg_cache_reset(package = NULL)
 }
 \arguments{
 \item{package}{A package name, or a path to the source directory of a
-package.}
+package. Use \code{NULL}, the default, to reset every cached index.}
 }
 \value{
 \code{NULL}, invisibly.
 }
 \description{
-Clears the cached topic index and parsed Rd objects for \code{package}.
-This will generally be called automatically by roxygen2 for source packages.
-Installed package indexes are automatically reset when their namespace is
-unloaded.
+Clears the cached topic index and parsed Rd objects for \code{package}, or for
+every package when \code{package} is \code{NULL}. This will generally be called
+automatically by roxygen2 for source packages. Installed package indexes
+are automatically reset when their namespace is unloaded.
+}
+\examples{
+head(pkg_topics("stats"))
+pkg_cache_reset("stats")
+
+# Reset every cached index
+pkg_cache_reset()
 }

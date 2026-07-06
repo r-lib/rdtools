@@ -2,23 +2,27 @@
 % Please edit documentation in R/topic.R
 \name{topic_exists}
 \alias{topic_exists}
-\title{Does a package document a topic?}
+\title{Is a topic documented?}
 \usage{
-topic_exists(topic, package)
+topic_exists(topic, packages = pkg_search_attached())
 }
 \arguments{
-\item{topic}{A single string naming an alias, matched exactly.}
+\item{topic}{A single string naming an alias, matched exactly.
+Use \code{\link[=topic_split]{topic_split()}} first if you need to handle qualified topics like
+\code{"pkg::foo"}.}
 
-\item{package}{A package name or source package path. An unavailable package
-returns \code{FALSE}.}
+\item{packages}{A character vector of package names (and/or source
+package paths) to search, in order. Defaults to \code{\link[=pkg_search_attached]{pkg_search_attached()}}.
+Unavailable packages are skipped.}
 }
 \value{
 A single \code{TRUE} or \code{FALSE}.
 }
 \description{
-Checks whether \code{package} has an exact alias matching \code{topic}.
+Checks whether any of \code{packages} has an exact alias matching \code{topic}.
 }
 \examples{
 topic_exists("rnorm", "stats")
+topic_exists("rnorm", c("base", "stats"))
 topic_exists("not-a-topic", "stats")
 }

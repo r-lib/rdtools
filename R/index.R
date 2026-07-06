@@ -18,20 +18,28 @@ index <- function(package) {
 
 #' Reset cached package indexes
 #'
-#' Clears the cached topic index and parsed Rd objects for `package`.
-#' This will generally be called automatically by roxygen2 for source packages.
-#' Installed package indexes are automatically reset when their namespace is
-#' unloaded.
+#' Clears the cached topic index and parsed Rd objects for `package`, or for
+#' every package when `package` is `NULL`. This will generally be called
+#' automatically by roxygen2 for source packages. Installed package indexes
+#' are automatically reset when their namespace is unloaded.
 #'
 #' @param package A package name, or a path to the source directory of a
-#'   package.
+#'   package. Use `NULL`, the default, to reset every cached index.
 #' @returns `NULL`, invisibly.
 #' @export
-pkg_cache_reset <- function(package) {
-  check_string(package)
-  key <- index_key(package)
-
-  index_drop(key)
+#' @examples
+#' head(pkg_topics("stats"))
+#' pkg_cache_reset("stats")
+#'
+#' # Reset every cached index
+#' pkg_cache_reset()
+pkg_cache_reset <- function(package = NULL) {
+  if (is.null(package)) {
+    rm(list = ls(the$index, all.names = TRUE), envir = the$index)
+  } else {
+    check_string(package)
+    index_drop(index_key(package))
+  }
   invisible(NULL)
 }
 

@@ -1,35 +1,35 @@
-test_that("topic_parse() splits qualified topics", {
+test_that("topic_split() splits qualified topics", {
   expect_equal(
-    topic_parse("stats::rnorm"),
+    topic_split("stats::rnorm"),
     list(package = "stats", topic = "rnorm")
   )
   expect_equal(
-    topic_parse("stats:::rnorm"),
+    topic_split("stats:::rnorm"),
     list(package = "stats", topic = "rnorm")
   )
-  expect_equal(topic_parse("rnorm"), list(package = NULL, topic = "rnorm"))
+  expect_equal(topic_split("rnorm"), list(package = NULL, topic = "rnorm"))
 })
 
-test_that("topic_parse() only splits on valid package names", {
+test_that("topic_split() only splits on valid package names", {
   # S7 method aliases contain :: but aren't qualified topics
   expect_equal(
-    topic_parse("speak,foo::Dog-method"),
+    topic_split("speak,foo::Dog-method"),
     list(package = NULL, topic = "speak,foo::Dog-method")
   )
   # package names must be at least two characters and start with a letter
   expect_equal(
-    topic_parse("x::foo"),
+    topic_split("x::foo"),
     list(package = NULL, topic = "x::foo")
   )
   expect_equal(
-    topic_parse(".pkg::foo"),
+    topic_split(".pkg::foo"),
     list(package = NULL, topic = ".pkg::foo")
   )
 })
 
-test_that("topic_parse() checks its input", {
-  expect_error(topic_parse(1), "single string")
-  expect_error(topic_parse(c("a", "b")), "single string")
+test_that("topic_split() checks its input", {
+  expect_error(topic_split(1), "single string")
+  expect_error(topic_split(c("a", "b")), "single string")
 })
 
 test_that("topic_find() finds topics in installed packages", {
@@ -49,12 +49,15 @@ test_that("topic_find() respects package order", {
 test_that("topic_find_all() returns every match", {
   expect_equal(
     topic_find_all("plot", c("graphics", "base")),
-    list(
-      list(package = "graphics", file = "plot.default"),
-      list(package = "base", file = "plot")
+    data.frame(
+      package = c("graphics", "base"),
+      file = c("plot.default", "plot")
     )
   )
-  expect_equal(topic_find_all("not-a-topic", "base"), list())
+  expect_equal(
+    topic_find_all("not-a-topic", "base"),
+    data.frame(package = character(), file = character())
+  )
 })
 
 test_that("topic_find_all() does not recheck cached packages", {
@@ -65,7 +68,7 @@ test_that("topic_find_all() does not recheck cached packages", {
 
   expect_equal(
     topic_find_all("rnorm", "stats"),
-    list(list(package = "stats", file = "Normal"))
+    data.frame(package = "stats", file = "Normal")
   )
 })
 
@@ -79,9 +82,14 @@ test_that("topic_exists() detects documented topics", {
   expect_identical(topic_exists("foo", "not-an-installed-package"), FALSE)
 })
 
-test_that("topic_source() finds the package supplying an object", {
-  expect_identical(topic_source("rnorm", "stats"), "stats")
-  expect_identical(topic_source("local_tempdir", "withr"), "withr")
+test_that("topic_exists() searches multiple packages", {
+  expect_identical(topic_exists("rnorm", c("base", "stats")), TRUE)
+  expect_identical(topic_exists("mean"), TRUE)
+})
+
+test_that("topic_origin() finds the package supplying an object", {
+  expect_identical(topic_origin("rnorm", "stats"), "stats")
+  expect_identical(topic_origin("local_tempdir", "withr"), "withr")
 })
 
 test_that("topic_find() searches the search path by default", {
@@ -117,6 +125,11 @@ test_that("topic_qualifier() determines package qualification", {
   )
 })
 
+test_that("topic_qualifier() defaults to searching only base packages", {
+  path <- local_test_pkg("foo.Rd" = "foo")
+  expect_identical(topic_qualifier("rnorm", path), NA_character_)
+})
+
 test_that("topic_rd() fetches parsed Rd from installed packages", {
   rd <- topic_rd("rnorm", "stats")
   expect_s3_class(rd, "Rd")
@@ -145,5 +158,24 @@ test_that("topic_rd() errors clearly on missing topics", {
   expect_error(
     topic_rd("not-a-topic", "stats"),
     "Can't find topic 'not-a-topic' in package 'stats'"
+  )
+})
+
+test_that("topic_rd_path() returns the path for source packages", {
+  path <- local_test_pkg("foo.Rd" = c("foo", "bar"))
+  expect_equal(
+    topic_rd_path("bar", path),
+    file.path(normalizePath(path), "man", "foo.Rd")
+  )
+})
+
+test_that("topic_rd_path() errors on missing topics and installed packages", {
+  expect_error(
+    topic_rd_path("not-a-topic", "stats"),
+    "Can't find topic 'not-a-topic' in package 'stats'"
+  )
+  expect_error(
+    topic_rd_path("rnorm", "stats"),
+    "don't keep Rd files on disk"
   )
 })

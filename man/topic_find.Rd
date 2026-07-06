@@ -11,7 +11,7 @@ topic_find_all(topic, packages = pkg_search_attached())
 }
 \arguments{
 \item{topic}{A single string naming an alias, matched exactly.
-Use \code{\link[=topic_parse]{topic_parse()}} first if you need to handle qualified topics like
+Use \code{\link[=topic_split]{topic_split()}} first if you need to handle qualified topics like
 \code{"pkg::foo"}.}
 
 \item{packages}{A character vector of package names (and/or source
@@ -26,8 +26,9 @@ list with elements:
 \item \code{file}: the name of the Rd file (without extension).
 }
 
-\code{topic_find_all()} returns a list of these results, or an empty list if the
-topic isn't found.
+\code{topic_find_all()} returns a data frame with columns \code{package} and
+\code{file}, containing one row per hit (and no rows if the topic isn't
+found).
 }
 \description{
 \code{topic_find()} looks \code{topic} up in each of \code{packages} in order and returns

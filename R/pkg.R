@@ -59,21 +59,21 @@ pkg_macros <- function(package) {
 #' attached package, in search path order, followed by the base packages that
 #' are always available. This is the default search set for [topic_find()].
 #'
-#' `pkgs_search_base()` returns the base packages that are always searched.
+#' `pkg_search_base()` returns the base packages that are always searched.
 #'
 #' @returns A character vector of package names.
 #' @export
 #' @examples
 #' pkg_search_attached()
-#' pkgs_search_base()
+#' pkg_search_base()
 pkg_search_attached <- function() {
   attached <- sub("^package:", "", grep("^package:", search(), value = TRUE))
-  unique(c(attached, pkgs_search_base()))
+  unique(c(attached, pkg_search_base()))
 }
 
 #' @rdname pkg_search_attached
 #' @export
-pkgs_search_base <- function() {
+pkg_search_base <- function() {
   if (getRversion() >= "4.4.0") {
     tools::standard_package_names()[["base"]]
   } else {

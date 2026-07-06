@@ -4,6 +4,10 @@
 # rdtools
 
 <!-- badges: start -->
+
+[![R-CMD-check](https://github.com/r-lib/rdtools/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/r-lib/rdtools/actions/workflows/R-CMD-check.yaml)
+[![Codecov test
+coverage](https://codecov.io/gh/r-lib/rdtools/graph/badge.svg)](https://app.codecov.io/gh/r-lib/rdtools)
 <!-- badges: end -->
 
 rdtools provides fast, cached lookup of help topics and aliases across
@@ -49,7 +53,7 @@ topic_find("rnorm")
 #> $file
 #> [1] "Normal"
 
-topic_parse("dplyr::across")
+topic_split("dplyr::across")
 #> $package
 #> [1] "dplyr"
 #> 
@@ -68,7 +72,7 @@ class(rd)
 ```
 
 All lookups are backed by per-package indexes that remain cached until
-explicitly reset. Installed package indexes are reset when their namespace is
-unloaded, while source package indexes can be reset with
-`pkg_cache_reset()`. This makes lookups cheap enough to call in a tight loop
-(e.g. once per link while rendering documentation).
+explicitly reset. Installed package indexes are reset when their
+namespace is unloaded, while source package indexes can be reset with
+`pkg_cache_reset()`. This makes lookups cheap enough to call in a tight
+loop (e.g. once per link while rendering documentation).

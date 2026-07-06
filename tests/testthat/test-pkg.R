@@ -133,6 +133,15 @@ test_that("pkg_cache_reset() drops the requested cached index", {
   expect_equal(pkg_topics("stats")[["rnorm"]], "Normal")
 })
 
+test_that("pkg_cache_reset() drops every cached index by default", {
+  pkg_topics("stats")
+  pkg_topics("utils")
+  pkg_cache_reset()
+  expect_length(ls(the$index, all.names = TRUE), 0)
+
+  expect_equal(pkg_topics("stats")[["rnorm"]], "Normal")
+})
+
 test_that("installed package unload hooks drop the cached index", {
   package <- "rdtoolsHookTest"
   key <- "hook-test"
@@ -152,6 +161,6 @@ test_that("installed package unload hooks drop the cached index", {
 
 test_that("pkg_search_attached() puts attached packages before base fallbacks", {
   packages <- pkg_search_attached()
-  expect_setequal(intersect(packages, pkgs_search_base()), pkgs_search_base())
+  expect_setequal(intersect(packages, pkg_search_base()), pkg_search_base())
   expect_equal(anyDuplicated(packages), 0L)
 })

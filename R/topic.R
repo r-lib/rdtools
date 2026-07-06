@@ -10,10 +10,10 @@
 #'   topic is unqualified) and `topic`.
 #' @export
 #' @examples
-#' topic_parse("stats::rnorm")
-#' topic_parse("rnorm")
-#' topic_parse("speak,foo::Dog-method")
-topic_parse <- function(topic) {
+#' topic_split("stats::rnorm")
+#' topic_split("rnorm")
+#' topic_split("speak,foo::Dog-method")
+topic_split <- function(topic) {
   check_string(topic)
 
   match <- regmatches(
@@ -37,7 +37,7 @@ topic_parse <- function(topic) {
 #' set is cheap.
 #'
 #' @param topic A single string naming an alias, matched exactly.
-#'   Use [topic_parse()] first if you need to handle qualified topics like
+#'   Use [topic_split()] first if you need to handle qualified topics like
 #'   `"pkg::foo"`.
 #' @param packages A character vector of package names (and/or source
 #'   package paths) to search, in order. Defaults to [pkg_search_attached()].
@@ -47,8 +47,9 @@ topic_parse <- function(topic) {
 #'   * `package`: the package that documents the topic.
 #'   * `file`: the name of the Rd file (without extension).
 #'
-#'   `topic_find_all()` returns a list of these results, or an empty list if the
-#'   topic isn't found.
+#'   `topic_find_all()` returns a data frame with columns `package` and
+#'   `file`, containing one row per hit (and no rows if the topic isn't
+#'   found).
 #' @export
 #' @examples
 #' topic_find("rnorm")
@@ -57,7 +58,11 @@ topic_parse <- function(topic) {
 #' topic_find("no-such-topic")
 topic_find <- function(topic, packages = pkg_search_attached()) {
   found <- topic_find_all(topic, packages)
-  if (length(found) == 0) NULL else found[[1]]
+  if (nrow(found) == 0) {
+    NULL
+  } else {
+    list(package = found$package[[1]], file = found$file[[1]])
+  }
 }
 
 #' @rdname topic_find
@@ -66,7 +71,8 @@ topic_find_all <- function(topic, packages = pkg_search_attached()) {
   check_string(topic)
   check_character(packages)
 
-  found <- list()
+  found_package <- character()
+  found_file <- character()
   for (package in packages) {
     if (!is_pkg_path(package) && !pkg_is_installed(package)) {
       next
@@ -74,23 +80,26 @@ topic_find_all <- function(topic, packages = pkg_search_attached()) {
     entry <- index(package)
     file <- get0(topic, envir = entry$env, inherits = FALSE)
     if (!is.null(file)) {
-      found[[length(found) + 1]] <- list(package = entry$name, file = file)
+      found_package <- c(found_package, entry$name)
+      found_file <- c(found_file, file)
     }
   }
-  found
+  data.frame(package = found_package, file = found_file)
 }
 
 #' Find the package qualifier for a topic
 #'
 #' Determines whether a topic needs a package qualifier when linking from the
-#' documentation of another package. The current package is checked first,
-#' followed by `dependencies`, and then the base packages. Re-exported objects
+#' documentation of another package. The `from` package is checked first,
+#' followed by `packages`, and then the base packages. Re-exported objects
 #' are attributed to their original package.
 #'
 #' @param topic A single string naming an alias, matched exactly.
-#' @param package The name or source directory of the current package.
-#' @param dependencies A character vector of dependencies to search.
-#'   [Base packages][pkgs_search_base] are always included.
+#' @param from The name or source directory of the package you are linking
+#'   from. If it documents `topic`, no qualifier is needed.
+#' @param packages A character vector of additional packages to search,
+#'   typically the dependencies of `from`. [Base
+#'   packages][pkg_search_base] are always included.
 #' @returns A character vector with special length and missingness semantics:
 #'   * `NA_character_` means the topic was found but needs no qualification.
 #'   * `character()` means the topic was not found.
@@ -98,24 +107,22 @@ topic_find_all <- function(topic, packages = pkg_search_attached()) {
 #'   * Multiple package names mean the topic is ambiguous.
 #' @export
 #' @examples
-#' topic_qualifier("rnorm", "stats", character())
-topic_qualifier <- function(topic, package, dependencies) {
+#' topic_qualifier("rnorm", "stats")
+topic_qualifier <- function(topic, from, packages = character()) {
   check_string(topic)
-  check_string(package)
-  check_character(dependencies)
+  check_string(from)
+  check_character(packages)
 
-  if (topic_exists(topic, package)) {
+  if (topic_exists(topic, from)) {
     return(NA_character_)
   }
 
-  packages <- unique(c(dependencies, pkgs_search_base()))
-  matches <- topic_find_all(topic, packages)
-  found <- vapply(matches, `[[`, character(1), "package")
+  base <- pkg_search_base()
+  matches <- topic_find_all(topic, unique(c(packages, base)))
   found <- unique(
-    vapply(found, \(package) topic_source(topic, package), character(1))
+    vapply(matches$package, \(pkg) topic_origin(topic, pkg), character(1))
   )
 
-  base <- pkgs_search_base()
   if (length(found) == 0) {
     character()
   } else if (length(found) == 1) {
@@ -127,23 +134,22 @@ topic_qualifier <- function(topic, package, dependencies) {
   }
 }
 
-#' Does a package document a topic?
+#' Is a topic documented?
 #'
-#' Checks whether `package` has an exact alias matching `topic`.
+#' Checks whether any of `packages` has an exact alias matching `topic`.
 #'
-#' @param topic A single string naming an alias, matched exactly.
-#' @param package A package name or source package path. An unavailable package
-#'   returns `FALSE`.
+#' @inheritParams topic_find
 #' @returns A single `TRUE` or `FALSE`.
 #' @export
 #' @examples
 #' topic_exists("rnorm", "stats")
+#' topic_exists("rnorm", c("base", "stats"))
 #' topic_exists("not-a-topic", "stats")
-topic_exists <- function(topic, package) {
-  !is.null(topic_find(topic, package))
+topic_exists <- function(topic, packages = pkg_search_attached()) {
+  !is.null(topic_find(topic, packages))
 }
 
-#' Find the source package for a topic
+#' Find the package where a topic's object originates
 #'
 #' Determines which package supplies the object associated with a documented
 #' topic. This resolves re-exported functions and imported objects to the
@@ -154,12 +160,12 @@ topic_exists <- function(topic, package) {
 #' @returns A single package name.
 #' @export
 #' @examples
-#' topic_source("rnorm", "stats")
-topic_source <- function(topic, package) {
+#' topic_origin("rnorm", "stats")
+topic_origin <- function(topic, package) {
   check_string(topic)
   check_string(package)
 
-  if (package %in% pkgs_search_base()) {
+  if (package %in% pkg_search_base()) {
     return(package)
   }
 
@@ -200,7 +206,7 @@ topic_source <- function(topic, package) {
 #' loaded. Results are cached per topic, so repeated access (e.g. roxygen2
 #' inheriting several fields from one topic) only pays once.
 #'
-#' @inheritParams topic_parse
+#' @inheritParams topic_split
 #' @param package A package name, or a path to the source directory of a
 #'   package.
 #' @returns An Rd object: a recursive structure of class `"Rd"`, as returned
@@ -231,6 +237,45 @@ topic_rd <- function(topic, package) {
     assign(file, rd, envir = entry$rd)
   }
   rd
+}
+
+#' Get the path to the Rd file for a topic
+#'
+#' Returns the path to the `.Rd` file that documents `topic`. Rd files only
+#' exist on disk for source and in-development packages; installed packages
+#' store their documentation in a binary database, so `topic_rd_path()`
+#' errors for them. Use [topic_rd()] if you want the parsed contents
+#' regardless of where they are stored.
+#'
+#' @inheritParams topic_rd
+#' @returns The path to a `.Rd` file.
+#' @export
+#' @examples
+#' # Rd files only exist on disk for source packages, so make a minimal one
+#' pkg <- tempfile()
+#' dir.create(file.path(pkg, "man"), recursive = TRUE)
+#' writeLines("Package: demo", file.path(pkg, "DESCRIPTION"))
+#' writeLines(
+#'   c("\\name{foo}", "\\alias{foo}", "\\title{Foo}", "\\description{Foo.}"),
+#'   file.path(pkg, "man", "foo.Rd")
+#' )
+#'
+#' topic_rd_path("foo", pkg)
+topic_rd_path <- function(topic, package) {
+  check_string(topic)
+
+  entry <- index(package)
+  file <- get0(topic, envir = entry$env, inherits = FALSE)
+  if (is.null(file)) {
+    stop(sprintf("Can't find topic '%s' in package '%s'.", topic, entry$name))
+  }
+  if (entry$backend != "source") {
+    stop(sprintf(
+      "Can't get an Rd path for '%s': installed packages don't keep Rd files on disk.",
+      entry$name
+    ))
+  }
+  entry$files[[file]]
 }
 
 # Lazily fetch one topic from an installed package's help database

@@ -2,12 +2,12 @@
 % Please edit documentation in R/pkg.R
 \name{pkg_search_attached}
 \alias{pkg_search_attached}
-\alias{pkgs_search_base}
+\alias{pkg_search_base}
 \title{Packages searched for help by default}
 \usage{
 pkg_search_attached()
 
-pkgs_search_base()
+pkg_search_base()
 }
 \value{
 A character vector of package names.
@@ -17,9 +17,9 @@ A character vector of package names.
 attached package, in search path order, followed by the base packages that
 are always available. This is the default search set for \code{\link[=topic_find]{topic_find()}}.
 
-\code{pkgs_search_base()} returns the base packages that are always searched.
+\code{pkg_search_base()} returns the base packages that are always searched.
 }
 \examples{
 pkg_search_attached()
-pkgs_search_base()
+pkg_search_base()
 }
