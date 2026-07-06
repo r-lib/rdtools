@@ -247,26 +247,3 @@ rd_parse_source <- function(entry, file) {
     encoding = "UTF-8"
   )
 }
-
-#' Load a package's Rd macros
-#'
-#' Loads the macros declared by the package's `RdMacros` field and
-#' `man/macros/` directory, layered over R's system macros. This reproduces the
-#' macro environment used when installing a package.
-#'
-#' @param package A package name, or a path to the source directory of a
-#'   package.
-#' @returns An environment containing the Rd macro definitions.
-#' @export
-#' @examples
-#' macros <- pkg_macros("stats")
-#' head(ls(macros))
-pkg_macros <- function(package) {
-  check_string(package)
-  path <- index_resolve(package)$path
-  macros <- tools::loadPkgRdMacros(path)
-  tools::loadRdMacros(
-    file.path(R.home("share"), "Rd", "macros", "system.Rd"),
-    macros = macros
-  )
-}

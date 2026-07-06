@@ -120,12 +120,6 @@ test_that("topic_rd() fetches parsed Rd from installed packages", {
   expect_true("\\name" %in% tags)
 })
 
-test_that("pkg_macros() loads package and system macros", {
-  macros <- pkg_macros("stats")
-  expect_type(macros, "environment")
-  expect_setequal(intersect(ls(macros), "\\doi"), "\\doi")
-})
-
 test_that("topic_rd() parses Rd from source packages", {
   path <- local_test_pkg("foo.Rd" = "foo")
   rd <- topic_rd("foo", path)

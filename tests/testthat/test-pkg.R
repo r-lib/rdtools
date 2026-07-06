@@ -9,6 +9,12 @@ test_that("pkg_topics() reads installed packages from aliases.rds", {
   )
 })
 
+test_that("pkg_macros() loads package and system macros", {
+  macros <- pkg_macros("stats")
+  expect_type(macros, "environment")
+  expect_setequal(intersect(ls(macros), "\\doi"), "\\doi")
+})
+
 test_that("local package lookup finds installed packages efficiently", {
   expect_identical(pkg_find("stats"), find.package("stats"))
   expect_identical(pkg_is_installed("stats"), TRUE)
