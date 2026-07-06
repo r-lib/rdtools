@@ -84,29 +84,34 @@ test_that("pkg_topics() warns on duplicated aliases, last file wins", {
 
 test_that("pkg_topics() handles packages with no man directory", {
   path <- withr::local_tempdir()
-  writeLines(c("Package: empty", "Version: 0.0.1"), file.path(path, "DESCRIPTION"))
+  writeLines(
+    c("Package: empty", "Version: 0.0.1"),
+    file.path(path, "DESCRIPTION")
+  )
 
   expect_equal(pkg_topics(path), setNames(character(), character()))
 })
 
-test_that("index is invalidated when man/ changes", {
+test_that("source indexes remain cached until explicitly reset", {
   path <- local_test_pkg("foo.Rd" = "foo")
+  other <- local_test_pkg("qux.Rd" = "qux")
   expect_named(pkg_topics(path), "foo")
+  expect_named(pkg_topics(other), "qux")
 
-  # adding a file changes the directory listing
   write_rd(path, "baz.Rd", "baz")
-  expect_true("baz" %in% names(pkg_topics(path)))
+  write_rd(other, "zap.Rd", "zap")
+  expect_named(pkg_topics(path), "foo")
+  expect_named(pkg_topics(other), "qux")
 
-  # editing a file changes its mtime (forced, in case of coarse clocks)
-  write_rd(path, "baz.Rd", c("baz", "qux"))
-  Sys.setFileTime(file.path(path, "man", "baz.Rd"), Sys.time() + 10)
-  expect_true("qux" %in% names(pkg_topics(path)))
+  pkg_cache_reset(path)
+  expect_named(pkg_topics(path), c("baz", "foo"))
+  expect_named(pkg_topics(other), "qux")
 })
 
-test_that("index_reset() drops all cached indexes", {
+test_that("pkg_cache_reset() drops the requested cached index", {
   pkg_topics("stats")
-  index_reset()
-  expect_length(ls(the$index), 0)
+  pkg_cache_reset("stats")
+  expect_equal(intersect(ls(the$index), "stats"), character())
 
   # still works after a full reset
   expect_equal(pkg_topics("stats")[["rnorm"]], "Normal")

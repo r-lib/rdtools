@@ -1,18 +1,13 @@
 # Per-package topic indexes, cached in `the$index` keyed by the caller's
 # `package` argument (a name, or a normalized path for source packages).
 # Each entry is an environment so the lazily-populated Rd cache (entry$rd)
-# persists without reassignment. Entries are validated on every access
-# against cheap filesystem stamps and rebuilt when stale, so callers never
-# need to invalidate by hand (index_reset() exists for stubborn cases).
+# persists without reassignment. Installed entries are validated on every
+# access. Source entries remain valid until explicitly reset, so repeated
+# lookups avoid scanning every file in man/.
 
 index <- function(package) {
   check_string(package)
-
-  if (is_pkg_path(package)) {
-    key <- normalizePath(package, mustWork = TRUE)
-  } else {
-    key <- package
-  }
+  key <- index_key(package)
 
   entry <- get0(key, envir = the$index, inherits = FALSE)
   if (is.null(entry) || !index_valid(entry)) {
@@ -22,9 +17,32 @@ index <- function(package) {
   entry
 }
 
-index_reset <- function() {
-  the$index <- new.env(parent = emptyenv())
+#' Reset cached package indexes
+#'
+#' Clears the cached topic index and parsed Rd objects for `package`.
+#' Only needed for source packages, and will generally be automatically
+#' be called by roxygen2.
+#'
+#' @param package A package name, or a path to the source directory of a
+#'   package.
+#' @returns `NULL`, invisibly.
+#' @export
+pkg_cache_reset <- function(package) {
+  check_string(package)
+  key <- index_key(package)
+
+  if (exists(key, envir = the$index, inherits = FALSE)) {
+    rm(list = key, envir = the$index)
+  }
   invisible(NULL)
+}
+
+index_key <- function(package) {
+  if (is_pkg_path(package)) {
+    normalizePath(package, mustWork = TRUE)
+  } else {
+    package
+  }
 }
 
 # A path (as opposed to a package name) is anything containing a path
@@ -65,21 +83,17 @@ index_resolve <- function(package) {
   }
 }
 
-# Cheap change-detection stamp: one stat() for installed packages; a
-# directory listing plus vectorized stat() for source packages (~0.5 ms
-# for a large man/, vs ~7 ms to rebuild). rd_files() sorts bytewise so
-# the stamp is insensitive to readdir order.
+# Cheap change-detection stamp for installed packages.
 index_stamp <- function(res) {
-  if (res$backend == "installed") {
-    path <- file.path(res$path, "help", "aliases.rds")
-    list(mtime = file.mtime(path), size = file.size(path))
-  } else {
-    files <- rd_files(file.path(res$path, "man"))
-    list(files = files, mtime = file.mtime(files))
-  }
+  path <- file.path(res$path, "help", "aliases.rds")
+  list(mtime = file.mtime(path), size = file.size(path))
 }
 
 index_valid <- function(entry) {
+  if (entry$backend == "source") {
+    return(TRUE)
+  }
+
   res <- tryCatch(index_resolve(entry$input), error = function(e) NULL)
   identical(res, entry$resolution) &&
     identical(index_stamp(res), entry$stamp)
@@ -87,7 +101,6 @@ index_valid <- function(entry) {
 
 index_build <- function(package) {
   res <- index_resolve(package)
-  stamp <- index_stamp(res)
 
   entry <- new.env(parent = emptyenv())
   entry$input <- package
@@ -95,13 +108,13 @@ index_build <- function(package) {
   entry$path <- res$path
   entry$backend <- res$backend
   entry$resolution <- res
-  entry$stamp <- stamp
   entry$rd <- new.env(parent = emptyenv())
 
   if (res$backend == "installed") {
+    entry$stamp <- index_stamp(res)
     topics <- readRDS(file.path(res$path, "help", "aliases.rds"))
   } else {
-    files <- stamp$files
+    files <- rd_files(file.path(res$path, "man"))
     rd_names <- sub("\\.[Rr]d$", "", names(files))
     entry$files <- stats::setNames(unname(files), rd_names)
     topics <- source_topics(files, rd_names)

@@ -26,9 +26,10 @@ indexed from the \verb{\\alias\{\}} commands in their source \verb{man/} directo
 rather than a name.
 }
 
-Indexes are cached, and revalidated against file modification times on
-every access, so repeated lookups are cheap and edits to \verb{man/} are
-picked up automatically.
+Indexes are cached. Installed packages are revalidated against file
+modification times on every access. Source packages remain cached until
+\code{\link[=pkg_cache_reset]{pkg_cache_reset()}} is called, avoiding repeated scans of their \verb{man/}
+directories.
 
 For source packages, \verb{\\alias\{\}} extraction is line-based: any number of
 aliases may appear anywhere on a line, but an alias must open and close
