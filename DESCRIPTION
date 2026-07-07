@@ -2,16 +2,17 @@ Package: rdtools
 Title: Efficient Manipulation of 'Rd' Files and Help Topics
 Version: 0.0.0.9000
 Authors@R: c(
-    person("Hadley", "Wickham", , "hadley@posit.co", role = c("aut", "cre")),
-    person("Posit Software, PBC", role = c("cph", "fnd"))
+    person("Hadley", "Wickham", , "hadley@posit.co", role = c("aut", "cre", "cph"),
+           comment = c(ORCID = "0000-0003-4757-117X")),
+    person("Posit Software, PBC", role = c("cph", "fnd"),
+           comment = c(ROR = "03wc8by49"))
   )
 Description: Fast, cached lookup of help topics and aliases across
     installed, source, and in-development packages, plus efficient
     retrieval of parsed 'Rd' objects.
 License: MIT + file LICENSE
-Encoding: UTF-8
-Roxygen: list(markdown = TRUE)
-RoxygenNote: 8.0.0
+URL: https://github.com/r-lib/rdtools
+BugReports: https://github.com/r-lib/rdtools/issues
 Imports:
     stats,
     tools
@@ -19,5 +20,6 @@ Suggests:
     testthat (>= 3.0.0),
     withr
 Config/testthat/edition: 3
-URL: https://github.com/r-lib/rdtools
-BugReports: https://github.com/r-lib/rdtools/issues
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 8.0.0
