@@ -98,8 +98,9 @@ topic_find_all <- function(topic, packages = pkg_search_attached()) {
 #' @param from The name or source directory of the package you are linking
 #'   from. If it documents `topic`, no qualifier is needed.
 #' @param packages A character vector of additional packages to search,
-#'   typically the dependencies of `from`. [Base
-#'   packages][pkg_search_base] are always included.
+#'   typically the dependencies of `from` (as computed by
+#'   [pkg_search_deps()]). [Base packages][pkg_search_base] are always
+#'   included.
 #' @returns
 #' * `NULL` if the topic isn't documented by `from`, `packages`, or the base
 #'   packages.

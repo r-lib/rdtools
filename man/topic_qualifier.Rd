@@ -13,7 +13,9 @@ topic_qualifier(topic, from, packages = character())
 from. If it documents \code{topic}, no qualifier is needed.}
 
 \item{packages}{A character vector of additional packages to search,
-typically the dependencies of \code{from}. \link[=pkg_search_base]{Base packages} are always included.}
+typically the dependencies of \code{from} (as computed by
+\code{\link[=pkg_search_deps]{pkg_search_deps()}}). \link[=pkg_search_base]{Base packages} are always
+included.}
 }
 \value{
 \itemize{

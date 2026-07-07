@@ -71,6 +71,48 @@ pkg_search_attached <- function() {
   unique(c(attached, pkg_search_base()))
 }
 
+#' Packages to search for topics in a package's dependencies
+#'
+#' `pkg_search_deps()` returns the packages whose topics `package`'s
+#' documentation can link to: the packages declared in its `Depends`,
+#' `Imports`, and `Suggests` fields, followed by the [base
+#' packages][pkg_search_base], which are always available. The result is
+#' cached alongside the package's topic index, so it remains valid until
+#' [pkg_cache_reset()] is called.
+#'
+#' @param package A package name, or a path to the source directory of a
+#'   package.
+#' @returns A character vector of package names.
+#' @export
+#' @examples
+#' pkg_search_deps("stats")
+pkg_search_deps <- function(package) {
+  check_string(package)
+
+  entry <- index(package)
+  if (is.null(entry$deps)) {
+    entry$deps <- unique(c(desc_deps(entry$path), pkg_search_base()))
+  }
+  entry$deps
+}
+
+# Package names declared in Depends/Imports/Suggests, in declaration order,
+# with version requirements and R itself dropped.
+desc_deps <- function(path) {
+  desc <- file.path(path, "DESCRIPTION")
+  if (!file.exists(desc)) {
+    return(character())
+  }
+
+  fields <- read.dcf(desc, c("Depends", "Imports", "Suggests"))[1, ]
+  deps <- unlist(
+    strsplit(fields[!is.na(fields)], ",", fixed = TRUE),
+    use.names = FALSE
+  )
+  deps <- trimws(sub("\\(.*\\)", "", deps))
+  unique(deps[deps != "" & deps != "R"])
+}
+
 #' @rdname pkg_search_attached
 #' @export
 pkg_search_base <- function() {

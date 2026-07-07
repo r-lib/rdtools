@@ -18,8 +18,8 @@ index <- function(package) {
 
 #' Reset cached package indexes
 #'
-#' Clears the cached topic index and parsed Rd objects for `package`, or for
-#' every package when `package` is `NULL`. This will generally be called
+#' Clears the cached topic index, parsed Rd objects, and dependency search
+#' set for `package`, or for every package when `package` is `NULL`. This will generally be called
 #' automatically by roxygen2 for source packages. Installed package indexes
 #' are automatically reset when their namespace is unloaded.
 #'

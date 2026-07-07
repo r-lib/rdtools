@@ -164,3 +164,42 @@ test_that("pkg_search_attached() puts attached packages before base fallbacks", 
   expect_setequal(intersect(packages, pkg_search_base()), pkg_search_base())
   expect_equal(anyDuplicated(packages), 0L)
 })
+
+test_that("pkg_search_deps() extracts dependencies from the DESCRIPTION", {
+  path <- local_test_pkg()
+  writeLines(
+    c(
+      "Package: testpkg",
+      "Version: 0.0.1",
+      "Depends: R (>= 4.0), datasets",
+      "Imports: withr (>= 2.0.0),",
+      "    testthat",
+      "Suggests: rlang"
+    ),
+    file.path(path, "DESCRIPTION")
+  )
+
+  expect_equal(
+    pkg_search_deps(path),
+    unique(c("datasets", "withr", "testthat", "rlang", pkg_search_base()))
+  )
+})
+
+test_that("pkg_search_deps() falls back to base packages", {
+  path <- local_test_pkg()
+  expect_equal(pkg_search_deps(path), pkg_search_base())
+})
+
+test_that("pkg_search_deps() is cached until reset", {
+  path <- local_test_pkg()
+  expect_equal(pkg_search_deps(path), pkg_search_base())
+
+  writeLines(
+    c("Package: testpkg", "Version: 0.0.1", "Imports: withr"),
+    file.path(path, "DESCRIPTION")
+  )
+  expect_equal(pkg_search_deps(path), pkg_search_base())
+
+  pkg_cache_reset(path)
+  expect_equal(pkg_search_deps(path), c("withr", pkg_search_base()))
+})

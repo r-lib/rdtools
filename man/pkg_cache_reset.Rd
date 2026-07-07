@@ -14,8 +14,8 @@ package. Use \code{NULL}, the default, to reset every cached index.}
 \code{NULL}, invisibly.
 }
 \description{
-Clears the cached topic index and parsed Rd objects for \code{package}, or for
-every package when \code{package} is \code{NULL}. This will generally be called
+Clears the cached topic index, parsed Rd objects, and dependency search
+set for \code{package}, or for every package when \code{package} is \code{NULL}. This will generally be called
 automatically by roxygen2 for source packages. Installed package indexes
 are automatically reset when their namespace is unloaded.
 }
