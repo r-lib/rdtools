@@ -6,7 +6,7 @@
 \alias{rdtools-package}
 \title{rdtools: Efficient Manipulation of 'Rd' Files and Help Topics}
 \description{
-Fast, cached lookup of help topics and aliases across installed, source, and in-development packages, plus efficient retrieval of parsed 'Rd' objects.
+Provides fast, cached lookup of help topics and aliases across installed, source, and in-development packages, plus efficient retrieval of parsed 'Rd' ('R' documentation) objects. Per-package indexes are built once and cached, making repeated lookups cheap enough to call in a tight loop, for example once per link while rendering documentation.
 }
 \seealso{
 Useful links:
@@ -17,16 +17,16 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Hadley Wickham \email{hadley@posit.co}
+\strong{Maintainer}: Hadley Wickham \email{hadley@posit.co} (\href{https://orcid.org/0000-0003-4757-117X}{ORCID}) [copyright holder]
 
 Authors:
 \itemize{
-  \item Hadley Wickham \email{hadley@posit.co}
+  \item Hadley Wickham \email{hadley@posit.co} (\href{https://orcid.org/0000-0003-4757-117X}{ORCID}) [copyright holder]
 }
 
 Other contributors:
 \itemize{
-  \item Posit Software, PBC [copyright holder, funder]
+  \item Posit Software, PBC (\href{https://ror.org/03wc8by49}{ROR}) [copyright holder, funder]
 }
 
 }

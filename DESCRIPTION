@@ -7,12 +7,16 @@ Authors@R: c(
     person("Posit Software, PBC", role = c("cph", "fnd"),
            comment = c(ROR = "03wc8by49"))
   )
-Description: Fast, cached lookup of help topics and aliases across
-    installed, source, and in-development packages, plus efficient
-    retrieval of parsed 'Rd' objects.
+Description: Provides fast, cached lookup of help topics and aliases
+    across installed, source, and in-development packages, plus
+    efficient retrieval of parsed 'Rd' ('R' documentation) objects.
+    Per-package indexes are built once and cached, making repeated
+    lookups cheap enough to call in a tight loop.
 License: MIT + file LICENSE
 URL: https://github.com/r-lib/rdtools
 BugReports: https://github.com/r-lib/rdtools/issues
+Depends:
+    R (>= 4.2)
 Imports:
     stats,
     tools
