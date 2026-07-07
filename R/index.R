@@ -1,7 +1,7 @@
 # Per-package topic indexes, cached in `the$index` keyed by the caller's
 # `package` argument (a name, or a normalized path for source packages).
-# Each entry is an environment so the lazily-populated Rd cache (entry$rd)
-# persists without reassignment. Entries remain valid until explicitly reset;
+# Each entry is an environment so the lazily-populated caches (entry$rd,
+# entry$origin, entry$deps) persist without reassignment. Entries remain valid until explicitly reset;
 # installed entries are reset automatically when their namespace is unloaded.
 
 index <- function(package) {
@@ -145,6 +145,7 @@ index_build <- function(package, key) {
   entry$path <- res$path
   entry$backend <- res$backend
   entry$rd <- new.env(parent = emptyenv())
+  entry$origin <- new.env(parent = emptyenv())
 
   if (res$backend == "installed") {
     index_register_unload(res$name, key)

@@ -92,6 +92,17 @@ test_that("topic_origin() finds the package supplying an object", {
   expect_identical(topic_origin("local_tempdir", "withr"), "withr")
 })
 
+test_that("topic_origin() caches lookups until reset", {
+  expect_identical(topic_origin("local_tempdir", "withr"), "withr")
+  local_mocked_bindings(
+    topic_origin_find = function(topic, package) stop("unexpected lookup")
+  )
+
+  expect_identical(topic_origin("local_tempdir", "withr"), "withr")
+  pkg_cache_reset("withr")
+  expect_error(topic_origin("local_tempdir", "withr"), "unexpected lookup")
+})
+
 test_that("topic_find() searches the search path by default", {
   found <- topic_find("mean")
   expect_equal(found$package, "base")

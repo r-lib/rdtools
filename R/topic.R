@@ -156,7 +156,8 @@ topic_exists <- function(topic, packages = pkg_search_attached()) {
 #'
 #' Determines which package supplies the object associated with a documented
 #' topic. This resolves re-exported functions and imported objects to the
-#' package where they originate.
+#' package where they originate. Results are cached alongside the package's
+#' topic index, so repeated lookups are cheap.
 #'
 #' @param topic A single string naming a topic.
 #' @param package A package name.
@@ -172,6 +173,16 @@ topic_origin <- function(topic, package) {
     return(package)
   }
 
+  entry <- index(package)
+  origin <- get0(topic, envir = entry$origin, inherits = FALSE)
+  if (is.null(origin)) {
+    origin <- topic_origin_find(topic, package)
+    assign(topic, origin, envir = entry$origin)
+  }
+  origin
+}
+
+topic_origin_find <- function(topic, package) {
   ns <- asNamespace(package)
   if (!exists(topic, envir = ns, inherits = TRUE)) {
     return(package)

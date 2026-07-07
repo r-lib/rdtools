@@ -17,7 +17,8 @@ A single package name.
 \description{
 Determines which package supplies the object associated with a documented
 topic. This resolves re-exported functions and imported objects to the
-package where they originate.
+package where they originate. Results are cached alongside the package's
+topic index, so repeated lookups are cheap.
 }
 \examples{
 topic_origin("rnorm", "stats")
