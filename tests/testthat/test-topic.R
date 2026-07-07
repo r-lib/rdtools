@@ -178,6 +178,25 @@ test_that("topic_qualifier() returns all candidates for ambiguous topics", {
   )
 })
 
+test_that("topic_qualifier() caches lookups until reset", {
+  path <- local_test_pkg("foo.Rd" = "foo")
+  expect_equal(topic_qualifier("local_tempdir", path, "withr"), "withr")
+  local_mocked_bindings(
+    topic_qualifier_find = function(topic, from, packages) {
+      stop("unexpected lookup")
+    }
+  )
+
+  expect_equal(topic_qualifier("local_tempdir", path, "withr"), "withr")
+  # a different search set is a different cache entry
+  expect_error(topic_qualifier("local_tempdir", path), "unexpected lookup")
+  pkg_cache_reset(path)
+  expect_error(
+    topic_qualifier("local_tempdir", path, "withr"),
+    "unexpected lookup"
+  )
+})
+
 test_that("topic_rd() fetches parsed Rd from installed packages", {
   rd <- topic_rd("rnorm", "stats")
   expect_s3_class(rd, "Rd")

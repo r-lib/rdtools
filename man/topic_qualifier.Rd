@@ -32,7 +32,8 @@ caller to decide how to respond.
 Determines whether a topic needs a package qualifier when linking from the
 documentation of another package. The \code{from} package is checked first,
 followed by \code{packages}, and then the base packages. Re-exported objects
-are attributed to their original package.
+are attributed to their original package. Results are cached alongside the
+\code{from} package's topic index, so repeated lookups are cheap.
 }
 \examples{
 topic_qualifier("rnorm", "stats")

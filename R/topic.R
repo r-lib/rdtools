@@ -92,7 +92,8 @@ topic_find_all <- function(topic, packages = pkg_search_attached()) {
 #' Determines whether a topic needs a package qualifier when linking from the
 #' documentation of another package. The `from` package is checked first,
 #' followed by `packages`, and then the base packages. Re-exported objects
-#' are attributed to their original package.
+#' are attributed to their original package. Results are cached alongside the
+#' `from` package's topic index, so repeated lookups are cheap.
 #'
 #' @param topic A single string naming an alias, matched exactly.
 #' @param from The name or source directory of the package you are linking
@@ -117,6 +118,22 @@ topic_qualifier <- function(topic, from, packages = character()) {
   check_string(from)
   check_character(packages)
 
+  if (!is_pkg_path(from) && !pkg_is_installed(from)) {
+    return(topic_qualifier_find(topic, from, packages))
+  }
+
+  entry <- index(from)
+  # \037 (unit separator) can't appear in package names, so the key is
+  # unambiguous even though the result depends on the whole search set.
+  key <- paste(c(topic, packages), collapse = "\037")
+  if (!exists(key, envir = entry$qualifier, inherits = FALSE)) {
+    value <- topic_qualifier_find(topic, from, packages)
+    assign(key, value, envir = entry$qualifier)
+  }
+  get(key, envir = entry$qualifier, inherits = FALSE)
+}
+
+topic_qualifier_find <- function(topic, from, packages) {
   if (topic_exists(topic, from)) {
     return(NA_character_)
   }
