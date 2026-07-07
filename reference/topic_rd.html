@@ -79,7 +79,9 @@ package.</p></dd>
     <div id="value">
     <h2>Value</h2>
     <p>An Rd object: a recursive structure of class <code>"Rd"</code>, as returned
-by <code><a href="https://rdrr.io/r/tools/parse_Rd.html" class="external-link">tools::parse_Rd()</a></code>.</p>
+by <code><a href="https://rdrr.io/r/tools/parse_Rd.html" class="external-link">tools::parse_Rd()</a></code>. Returns <code>NULL</code> if the package or topic doesn't
+exist; use <code><a href="topic_exists.html">topic_exists()</a></code> first if you need to distinguish that from
+other problems.</p>
     </div>
 
     <div id="ref-examples">

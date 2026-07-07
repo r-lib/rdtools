@@ -67,7 +67,7 @@ set is cheap.</p>
 
 <dl><dt id="arg-topic">topic<a class="anchor" aria-label="anchor" href="#arg-topic"></a></dt>
 <dd><p>A single string naming an alias, matched exactly.
-Use <code><a href="topic_parse.html">topic_parse()</a></code> first if you need to handle qualified topics like
+Use <code><a href="topic_split.html">topic_split()</a></code> first if you need to handle qualified topics like
 <code>"pkg::foo"</code>.</p></dd>
 
 
@@ -82,8 +82,9 @@ Unavailable packages are skipped.</p></dd>
     <p><code>topic_find()</code> returns <code>NULL</code> if the topic isn't found; otherwise a
 list with elements:</p><ul><li><p><code>package</code>: the package that documents the topic.</p></li>
 <li><p><code>file</code>: the name of the Rd file (without extension).</p></li>
-</ul><p><code>topic_find_all()</code> returns a list of these results, or an empty list if the
-topic isn't found.</p>
+</ul><p><code>topic_find_all()</code> returns a data frame with columns <code>package</code> and
+<code>file</code>, containing one row per hit (and no rows if the topic isn't
+found).</p>
     </div>
 
     <div id="ref-examples">
@@ -103,22 +104,9 @@ topic isn't found.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "mean"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span><span class="fu">topic_find_all</span><span class="op">(</span><span class="st">"plot"</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"graphics"</span>, <span class="st">"base"</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [[1]]</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [[1]]$package</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "graphics"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [[1]]$file</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "plot.default"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [[2]]</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [[2]]$package</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "base"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [[2]]$file</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "plot"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    package         file</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 graphics plot.default</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2     base         plot</span>
 <span class="r-in"><span><span class="fu">topic_find</span><span class="op">(</span><span class="st">"no-such-topic"</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
 </code></pre></div>
