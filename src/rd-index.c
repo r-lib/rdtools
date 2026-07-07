@@ -29,8 +29,6 @@
 //   ~0.9 ms  inverting file->aliases into alias->file in R via tapply().
 //            A loop assigning into a new.env(hash = TRUE) does the same
 //            job in ~160 us AND gives O(1) lookups — see "Lookup" below.
-//   ~0.1 ms  directory listing (c_rd_files below).
-//
 // Lessons that transfer beyond this file:
 //
 // 1. READ THE WHOLE FILE AT ONCE. An fseek/ftell/fread of the entire file
@@ -46,13 +44,6 @@
 //    that differs. Sorting the same strings under C collation costs ~110 us;
 //    the raw readdir work is only ~50 us. If you must use dir() in a hot
 //    path, list basenames and paste the prefix on afterwards.
-//
-// 3. WE DON'T SORT AT ALL HERE. readdir order is arbitrary and
-//    filesystem-specific, so the R wrapper sorts basenames bytewise
-//    (order(method = "radix"), ~10 us) for deterministic output; just never
-//    sort full paths under locale collation (see point 2). Duplicated
-//    aliases are a packaging mistake that the R side surfaces as a warning
-//    rather than silently resolving.
 //
 // == Lookup: build an environment, not a list ================================
 //
@@ -75,81 +66,18 @@
 //
 // == GC safety ===============================================================
 //
-// Both functions collect results in R_alloc() scratch space (freed
-// automatically by R when .Call returns) and only create CHARSXPs after the
-// output STRSXP is allocated and PROTECTed, assigning each CHARSXP into the
-// vector immediately. This matters: an earlier draft stored freshly created
-// CHARSXPs in a C array while continuing to allocate, and any of those
-// later allocations could trigger a GC that collects the unprotected
-// strings. Buffering bytes, not SEXPs, sidesteps the whole class of bug.
+// The scanner collects results in R_alloc() scratch space (freed automatically
+// when .Call returns) and only creates CHARSXPs after the output STRSXP is
+// allocated and PROTECTed, assigning each CHARSXP into the vector immediately.
+// This matters: an earlier draft stored freshly created CHARSXPs in a C array
+// while continuing to allocate, and any of those later allocations could
+// trigger a GC that collects the unprotected strings. Buffering bytes, not
+// SEXPs, sidesteps the whole class of bug.
 
 #include <R.h>
 #include <Rinternals.h>
-#include <dirent.h>
 #include <stdio.h>
 #include <string.h>
-
-// --- c_rd_files -------------------------------------------------------------
-// Non-hidden *.Rd / *.rd files in `dirpath`, full paths, basenames as names.
-// Returned in readdir order (see note 3 above). ~60-120 us for 228 files,
-// vs ~550 us for dir(pattern = "\\.[Rr]d$", full.names = TRUE): the win is
-// (a) no locale-collated sort and (b) a suffix check instead of a regex.
-
-static int is_rd(const char* name) {
-  if (name[0] == '.') return 0;  // matches dir()'s all.files = FALSE default
-  size_t len = strlen(name);
-  if (len < 3) return 0;
-  return name[len - 3] == '.' &&
-         (name[len - 2] == 'R' || name[len - 2] == 'r') &&
-         name[len - 1] == 'd';
-}
-
-SEXP c_rd_files(SEXP dirpath) {
-  const char* dpath = CHAR(STRING_ELT(dirpath, 0));
-  DIR* d = opendir(dpath);
-  if (!d) return Rf_allocVector(STRSXP, 0);
-
-  // Growable array of basenames. R_alloc has no realloc, so grow by
-  // allocate-and-copy; the transient blocks are reclaimed at .Call exit.
-  int cap = 64, n = 0;
-  const char** names = (const char**) R_alloc(cap, sizeof(char*));
-
-  struct dirent* e;
-  while ((e = readdir(d)) != NULL) {
-    if (!is_rd(e->d_name)) continue;
-    if (n == cap) {
-      const char** bigger = (const char**) R_alloc(cap * 2, sizeof(char*));
-      memcpy(bigger, names, cap * sizeof(char*));
-      names = bigger;
-      cap *= 2;
-    }
-    size_t len = strlen(e->d_name);
-    char* copy = R_alloc(len + 1, 1);
-    memcpy(copy, e->d_name, len + 1);
-    names[n++] = copy;
-  }
-  closedir(d);
-
-  // Shared path buffer: prefix written once, basename overwritten per file.
-  // d_name is capped at NAME_MAX (255) on macOS/Linux, so 256 is safe.
-  size_t dlen = strlen(dpath);
-  char* full = R_alloc(dlen + 1 + 256 + 1, 1);
-  memcpy(full, dpath, dlen);
-  full[dlen] = '/';
-
-  SEXP out = PROTECT(Rf_allocVector(STRSXP, n));
-  SEXP nms = PROTECT(Rf_allocVector(STRSXP, n));
-  for (int i = 0; i < n; i++) {
-    size_t len = strlen(names[i]);
-    if (len > 256) len = 256;
-    memcpy(full + dlen + 1, names[i], len);
-    SET_STRING_ELT(out, i, Rf_mkCharLenCE(full, (int)(dlen + 1 + len), CE_UTF8));
-    SET_STRING_ELT(nms, i, Rf_mkCharCE(names[i], CE_UTF8));
-  }
-  Rf_setAttrib(out, R_NamesSymbol, nms);
-  UNPROTECT(2);
-  return out;
-}
 
 // --- c_rd_aliases -----------------------------------------------------------
 // Extract \alias{...} entries from one Rd file, by scanning lines:

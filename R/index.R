@@ -202,11 +202,9 @@ source_topics <- function(files, rd_names) {
 }
 
 # *.[Rr]d files in `path`, full paths, basenames as names, sorted bytewise
-# by basename for deterministic order (see src/rd-index.c, note 3).
+# by basename for deterministic order.
 rd_files <- function(path) {
-  files <- .Call(c_rd_files, path)
-  if (length(files) == 0) {
-    return(stats::setNames(character(), character()))
-  }
-  files[order(names(files), method = "radix")]
+  names <- dir(path, pattern = "\\.[Rr]d$")
+  names <- names[order(names, method = "radix")]
+  stats::setNames(file.path(path, names), names)
 }
