@@ -117,7 +117,9 @@ desc_deps <- function(path) {
 #' @export
 pkg_search_base <- function() {
   if (getRversion() >= "4.4.0") {
-    tools::standard_package_names()[["base"]]
+    # Hide from R CMD check
+    standard_package_names <- asNamespace("tools")$standard_package_names
+    standard_package_names()[["base"]]
   } else {
     c(
       "base",

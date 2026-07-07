@@ -16,7 +16,10 @@ test_that("pkg_macros() loads package and system macros", {
 })
 
 test_that("local package lookup finds installed packages efficiently", {
-  expect_equal(pkg_find("stats"), find.package("stats"))
+  expect_equal(
+    normalizePath(pkg_find("stats")),
+    normalizePath(find.package("stats"))
+  )
   expect_equal(pkg_is_installed("stats"), TRUE)
   expect_equal(pkg_is_installed("not-an-installed-package"), FALSE)
   expect_error(
