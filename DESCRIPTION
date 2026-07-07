@@ -13,7 +13,7 @@ Description: Provides fast, cached lookup of help topics and aliases
     Per-package indexes are built once and cached, making repeated
     lookups cheap enough to call in a tight loop.
 License: MIT + file LICENSE
-URL: https://github.com/r-lib/rdtools
+URL: https://rdtools.r-lib.org, https://github.com/r-lib/rdtools
 BugReports: https://github.com/r-lib/rdtools/issues
 Depends:
     R (>= 4.0)
@@ -27,3 +27,4 @@ Config/testthat/edition: 3
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 8.0.0
+Config/Needs/website: tidyverse/tidytemplate
