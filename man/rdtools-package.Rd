@@ -6,7 +6,7 @@
 \alias{rdtools-package}
 \title{rdtools: Efficient Manipulation of 'Rd' Files and Help Topics}
 \description{
-Provides fast, cached lookup of help topics and aliases across installed, source, and in-development packages, plus efficient retrieval of parsed 'Rd' ('R' documentation) objects. Per-package indexes are built once and cached, making repeated lookups cheap enough to call in a tight loop, for example once per link while rendering documentation.
+Provides fast, cached lookup of help topics and aliases across installed, source, and in-development packages, plus efficient retrieval of parsed 'Rd' ('R' documentation) objects. Per-package indexes are built once and cached, making repeated lookups cheap enough to call in a tight loop.
 }
 \seealso{
 Useful links:
