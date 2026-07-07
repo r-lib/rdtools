@@ -1,0 +1,5 @@
+CompileFlags:
+  Add:
+    - "-I/Library/Frameworks/R.framework/Resources/include"
+    - "-I/opt/R/arm64/include"
+    - "-I/opt/homebrew/include"
