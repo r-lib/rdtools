@@ -108,6 +108,18 @@ test_that("topic_origin() handles simple cases", {
   expect_equal(topic_origin("process", "callr"), "processx")
 })
 
+test_that("topic_origin() attributes generated functions to their package", {
+  skip_on_cran() # cli is a hard dependency of testthat
+
+  # cli's colour functions are closures whose environment isn't a namespace
+  expect_equal(topic_origin("col_green", "cli"), "cli")
+})
+
+test_that("topic_origin() attributes own non-function objects to the package", {
+  # Reporter is an R6 class generator defined in testthat itself
+  expect_equal(topic_origin("Reporter", "testthat"), "testthat")
+})
+
 test_that("topic_origin() caches lookups until reset", {
   expect_equal(topic_origin("local_tempdir", "withr"), "withr")
   local_mocked_bindings(
