@@ -16,7 +16,7 @@ License: MIT + file LICENSE
 URL: https://github.com/r-lib/rdtools
 BugReports: https://github.com/r-lib/rdtools/issues
 Depends:
-    R (>= 4.2)
+    R (>= 4.0)
 Imports:
     stats,
     tools

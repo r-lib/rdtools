@@ -141,7 +141,11 @@ topic_qualifier_find <- function(topic, from, packages) {
   base <- pkg_search_base()
   matches <- topic_find_all(topic, unique(c(packages, base)))
   found <- unique(
-    vapply(matches$package, \(pkg) topic_origin(topic, pkg), character(1))
+    vapply(
+      matches$package,
+      function(pkg) topic_origin(topic, pkg),
+      character(1)
+    )
   )
 
   if (length(found) == 0) {
