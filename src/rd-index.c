@@ -76,6 +76,7 @@
 
 #include <R.h>
 #include <Rinternals.h>
+#include <limits.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -169,16 +170,32 @@ static void scan_line(const char* line, size_t len, alias_buf* b) {
 }
 
 SEXP c_rd_aliases(SEXP path) {
-  const char* p = CHAR(STRING_ELT(path, 0));
+  if (!Rf_isString(path) || Rf_xlength(path) != 1 ||
+      STRING_ELT(path, 0) == NA_STRING) {
+    Rf_error("`path` must be a single string");
+  }
+  const char* p = Rf_translateChar(STRING_ELT(path, 0));
+
   FILE* f = fopen(p, "rb");
   if (!f) Rf_error("Can't open '%s'", p);
 
   // One read for the whole file — see note 1 in the header comment.
-  fseek(f, 0, SEEK_END);
-  long size = ftell(f);
-  fseek(f, 0, SEEK_SET);
-  char* buf = R_alloc(size + 1, 1);
-  size_t got = fread(buf, 1, size, f);
+  // ftell() is -1 for non-seekable paths (e.g. a fifo); letting that
+  // through would make the fread() below unbounded.
+  long size = -1;
+  if (fseek(f, 0, SEEK_END) == 0) size = ftell(f);
+  if (size < 0 || fseek(f, 0, SEEK_SET) != 0) {
+    fclose(f);
+    Rf_error("Can't determine size of '%s'", p);
+  }
+  // Keeps every length in the scanner comfortably within `int` range.
+  if (size > INT_MAX - 1) {
+    fclose(f);
+    Rf_error("'%s' is too large to index", p);
+  }
+
+  char* buf = R_alloc((size_t) size + 1, 1);
+  size_t got = fread(buf, 1, (size_t) size, f);
   fclose(f);
   buf[got] = '\0';
 

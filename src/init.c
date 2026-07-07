@@ -12,4 +12,5 @@ static const R_CallMethodDef call_entries[] = {
 void R_init_rdtools(DllInfo* dll) {
   R_registerRoutines(dll, NULL, call_entries, NULL, NULL);
   R_useDynamicSymbols(dll, FALSE);
+  R_forceSymbols(dll, TRUE);
 }
