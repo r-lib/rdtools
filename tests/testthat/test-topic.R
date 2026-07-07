@@ -92,6 +92,22 @@ test_that("topic_origin() finds the package supplying an object", {
   expect_identical(topic_origin("local_tempdir", "withr"), "withr")
 })
 
+test_that("topic_origin() handles simple cases", {
+  skip_on_cran() # since depends on other packages
+  # rlang and callr are hard dependencies of testthat
+
+  # in base package
+  expect_identical(topic_origin("list", "base"), "base")
+  # topic not in namespace
+  expect_identical(topic_origin("doesnt'exist", "withr"), "withr")
+  # primitive objects are always in base
+  expect_identical(topic_origin("is_null", "rlang"), "base")
+  # testthat re-exports %>% from magrittr
+  expect_identical(topic_origin("%>%", "testthat"), "magrittr")
+  # callr re-exports process (an R6 generator, not a function) from processx
+  expect_identical(topic_origin("process", "callr"), "processx")
+})
+
 test_that("topic_origin() caches lookups until reset", {
   expect_identical(topic_origin("local_tempdir", "withr"), "withr")
   local_mocked_bindings(
