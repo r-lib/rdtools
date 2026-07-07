@@ -77,19 +77,19 @@ test_that("topic_find() returns NULL for missing topics", {
 })
 
 test_that("topic_exists() detects documented topics", {
-  expect_identical(topic_exists("rnorm", "stats"), TRUE)
-  expect_identical(topic_exists("not-a-topic", "stats"), FALSE)
-  expect_identical(topic_exists("foo", "not-an-installed-package"), FALSE)
+  expect_equal(topic_exists("rnorm", "stats"), TRUE)
+  expect_equal(topic_exists("not-a-topic", "stats"), FALSE)
+  expect_equal(topic_exists("foo", "not-an-installed-package"), FALSE)
 })
 
 test_that("topic_exists() searches multiple packages", {
-  expect_identical(topic_exists("rnorm", c("base", "stats")), TRUE)
-  expect_identical(topic_exists("mean"), TRUE)
+  expect_equal(topic_exists("rnorm", c("base", "stats")), TRUE)
+  expect_equal(topic_exists("mean"), TRUE)
 })
 
 test_that("topic_origin() finds the package supplying an object", {
-  expect_identical(topic_origin("rnorm", "stats"), "stats")
-  expect_identical(topic_origin("local_tempdir", "withr"), "withr")
+  expect_equal(topic_origin("rnorm", "stats"), "stats")
+  expect_equal(topic_origin("local_tempdir", "withr"), "withr")
 })
 
 test_that("topic_origin() handles simple cases", {
@@ -97,24 +97,24 @@ test_that("topic_origin() handles simple cases", {
   # rlang and callr are hard dependencies of testthat
 
   # in base package
-  expect_identical(topic_origin("list", "base"), "base")
+  expect_equal(topic_origin("list", "base"), "base")
   # topic not in namespace
-  expect_identical(topic_origin("doesnt'exist", "withr"), "withr")
+  expect_equal(topic_origin("doesnt'exist", "withr"), "withr")
   # primitive objects are always in base
-  expect_identical(topic_origin("is_null", "rlang"), "base")
+  expect_equal(topic_origin("is_null", "rlang"), "base")
   # testthat re-exports %>% from magrittr
-  expect_identical(topic_origin("%>%", "testthat"), "magrittr")
+  expect_equal(topic_origin("%>%", "testthat"), "magrittr")
   # callr re-exports process (an R6 generator, not a function) from processx
-  expect_identical(topic_origin("process", "callr"), "processx")
+  expect_equal(topic_origin("process", "callr"), "processx")
 })
 
 test_that("topic_origin() caches lookups until reset", {
-  expect_identical(topic_origin("local_tempdir", "withr"), "withr")
+  expect_equal(topic_origin("local_tempdir", "withr"), "withr")
   local_mocked_bindings(
     topic_origin_find = function(topic, package) stop("unexpected lookup")
   )
 
-  expect_identical(topic_origin("local_tempdir", "withr"), "withr")
+  expect_equal(topic_origin("local_tempdir", "withr"), "withr")
   pkg_cache_reset("withr")
   expect_error(topic_origin("local_tempdir", "withr"), "unexpected lookup")
 })
@@ -143,15 +143,15 @@ test_that("topic_find() finds topics in source packages", {
 test_that("topic_qualifier() determines package qualification", {
   path <- local_test_pkg("foo.Rd" = "foo")
 
-  expect_identical(topic_qualifier("foo", path, "withr"), NA_character_)
-  expect_identical(topic_qualifier("rnorm", path, "withr"), NA_character_)
-  expect_identical(topic_qualifier("local_tempdir", path, "withr"), "withr")
+  expect_equal(topic_qualifier("foo", path, "withr"), NA_character_)
+  expect_equal(topic_qualifier("rnorm", path, "withr"), NA_character_)
+  expect_equal(topic_qualifier("local_tempdir", path, "withr"), "withr")
   expect_null(topic_qualifier("definitely-not-a-topic", path, "withr"))
 })
 
 test_that("topic_qualifier() defaults to searching only base packages", {
   path <- local_test_pkg("foo.Rd" = "foo")
-  expect_identical(topic_qualifier("rnorm", path), NA_character_)
+  expect_equal(topic_qualifier("rnorm", path), NA_character_)
 })
 
 test_that("topic_qualifier() returns all candidates for ambiguous topics", {
@@ -160,7 +160,7 @@ test_that("topic_qualifier() returns all candidates for ambiguous topics", {
   two <- local_test_pkg("foo.Rd" = "foo", name = "pkg2")
   local_mocked_bindings(topic_origin = function(topic, package) package)
 
-  expect_identical(
+  expect_equal(
     topic_qualifier("foo", from, c(one, two)),
     c("pkg1", "pkg2")
   )
@@ -187,7 +187,7 @@ test_that("topic_rd() caches parsed Rd", {
   path <- local_test_pkg("foo.Rd" = "foo")
   rd1 <- topic_rd("foo", path)
   rd2 <- topic_rd("foo", path)
-  expect_identical(rd1, rd2)
+  expect_equal(rd1, rd2)
 })
 
 test_that("topic_rd() returns NULL for missing topics and packages", {

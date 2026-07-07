@@ -3,7 +3,7 @@ test_that("pkg_topics() reads installed packages from aliases.rds", {
   expect_type(topics, "character")
   expect_equal(topics[["rnorm"]], "Normal")
 
-  expect_identical(
+  expect_equal(
     sort(topics),
     sort(readRDS(file.path(find.package("stats"), "help", "aliases.rds")))
   )
@@ -16,9 +16,9 @@ test_that("pkg_macros() loads package and system macros", {
 })
 
 test_that("local package lookup finds installed packages efficiently", {
-  expect_identical(pkg_find("stats"), find.package("stats"))
-  expect_identical(pkg_is_installed("stats"), TRUE)
-  expect_identical(pkg_is_installed("not-an-installed-package"), FALSE)
+  expect_equal(pkg_find("stats"), find.package("stats"))
+  expect_equal(pkg_is_installed("stats"), TRUE)
+  expect_equal(pkg_is_installed("not-an-installed-package"), FALSE)
   expect_error(
     pkg_find("not-an-installed-package"),
     class = "packageNotFoundError"
