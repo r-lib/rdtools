@@ -15,12 +15,12 @@ Source:
 [`DESCRIPTION`](https://github.com/r-lib/rdtools/blob/main/DESCRIPTION)
 
 Wickham H (2026). *rdtools: Efficient Manipulation of 'Rd' Files and
-Help Topics*. R package version 0.1.0, <https://rdtools.r-lib.org>.
+Help Topics*. R package version 0.1.0.9000, <https://rdtools.r-lib.org>.
 
     @Manual{,
       title = {rdtools: Efficient Manipulation of 'Rd' Files and Help Topics},
       author = {Hadley Wickham},
       year = {2026},
-      note = {R package version 0.1.0},
+      note = {R package version 0.1.0.9000},
       url = {https://rdtools.r-lib.org},
     }
