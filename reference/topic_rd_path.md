@@ -41,5 +41,5 @@ writeLines(
 )
 
 topic_rd_path("foo", pkg)
-#> [1] "/tmp/RtmpubtkMi/file1946778e970/man/foo.Rd"
+#> [1] "/tmp/RtmpAFx903/file198946367d00/man/foo.Rd"
 ```
